@@ -1,33 +1,75 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  ClerkProvider,
+  SignedIn,
+  SignedOut,
+  RedirectToSignIn,
+} from "@clerk/clerk-react";
+
 import Dashboard from "./pages/Dashboard";
 import Lobby from "./pages/Lobby";
 import Race from "./pages/Race";
 import Results from "./pages/Results";
 import Auth from "./pages/Auth";
 
+// Vite environment variable
+const clerkPublishableKey = import.meta.env
+  .VITE_CLERK_PUBLISHABLE_KEY as string;
+
 function App() {
   return (
-    <Router>
-      <Routes>
-        {/* Landing / Dashboard */}
-        <Route path="/" element={<Dashboard />} />
+    <ClerkProvider publishableKey={clerkPublishableKey}>
+      <Router>
+        <Routes>
+          {/* Auth protected routes */}
+          <Route
+            path="/"
+            element={
+              <SignedIn>
+                <Dashboard />
+              </SignedIn>
+            }
+          />
+          <Route
+            path="/lobby"
+            element={
+              <SignedIn>
+                <Lobby />
+              </SignedIn>
+            }
+          />
+          <Route
+            path="/race"
+            element={
+              <SignedIn>
+                <Race />
+              </SignedIn>
+            }
+          />
+          <Route
+            path="/results"
+            element={
+              <SignedIn>
+                <Results />
+              </SignedIn>
+            }
+          />
 
-        {/* Lobby page */}
-        <Route path="/lobby" element={<Lobby />} />
+          {/* Auth page */}
+          <Route
+            path="/auth"
+            element={
+              <SignedOut>
+                <Auth />
+              </SignedOut>
+            }
+          />
 
-        {/* Race page */}
-        <Route path="/race" element={<Race />} />
-
-        {/* Results page */}
-        <Route path="/results" element={<Results />} />
-
-        {/* Auth page */}
-        <Route path="/auth" element={<Auth />} />
-
-        {/* Fallback route */}
-        <Route path="*" element={<Dashboard />} />
-      </Routes>
-    </Router>
+          {/* Fallback */}
+          <Route path="*" element={<RedirectToSignIn />} />
+        </Routes>
+      </Router>
+    </ClerkProvider>
   );
 }
 

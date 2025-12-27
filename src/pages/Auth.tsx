@@ -1,39 +1,27 @@
 import { SignIn, SignUp, useUser } from "@clerk/clerk-react";
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function Auth() {
   const { isSignedIn } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Optional: redirect back to previous page if any
   const from = (location.state as { from?: string })?.from || "/";
-
   const [showSignUp, setShowSignUp] = useState(false);
 
   useEffect(() => {
     if (isSignedIn) {
-      navigate(from, { replace: true }); // Redirect to dashboard
+      navigate(from, { replace: true });
     }
   }, [isSignedIn, navigate, from]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
       {showSignUp ? (
-        <SignUp
-          path="/auth"
-          routing="path"
-          signInUrl="/auth"
-          afterSignUpUrl="/"
-        />
+        <SignUp path="/auth" routing="path" signInUrl="/auth" />
       ) : (
-        <SignIn
-          path="/auth"
-          routing="path"
-          signUpUrl="/auth"
-          afterSignInUrl="/"
-        />
+        <SignIn path="/auth" routing="path" signUpUrl="/auth" />
       )}
 
       <button

@@ -1,9 +1,14 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import {
   ClerkProvider,
   SignedIn,
   SignedOut,
-  RedirectToSignIn,
+  ClerkLoaded,
 } from "@clerk/clerk-react";
 
 import Dashboard from "./pages/Dashboard";
@@ -12,63 +17,80 @@ import Race from "./pages/Race";
 import Results from "./pages/Results";
 import Auth from "./pages/Auth";
 
-// Vite environment variable
 const clerkPublishableKey = import.meta.env
   .VITE_CLERK_PUBLISHABLE_KEY as string;
 
+// Protected Route wrapper component
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <SignedIn>{children}</SignedIn>
+      <SignedOut>
+        <Navigate to="/auth" replace />
+      </SignedOut>
+    </>
+  );
+}
+
 function App() {
+  console.log("Clerk Key:", clerkPublishableKey);
+
   return (
     <ClerkProvider publishableKey={clerkPublishableKey}>
-      <Router>
-        <Routes>
-          {/* Auth protected routes */}
-          <Route
-            path="/"
-            element={
-              <SignedIn>
-                <Dashboard />
-              </SignedIn>
-            }
-          />
-          <Route
-            path="/lobby"
-            element={
-              <SignedIn>
-                <Lobby />
-              </SignedIn>
-            }
-          />
-          <Route
-            path="/race"
-            element={
-              <SignedIn>
-                <Race />
-              </SignedIn>
-            }
-          />
-          <Route
-            path="/results"
-            element={
-              <SignedIn>
-                <Results />
-              </SignedIn>
-            }
-          />
+      <ClerkLoaded>
+        <Router>
+          <Routes>
+            {/* Protected routes */}
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/lobby"
+              element={
+                <ProtectedRoute>
+                  <Lobby />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/race"
+              element={
+                <ProtectedRoute>
+                  <Race />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/results"
+              element={
+                <ProtectedRoute>
+                  <Results />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Auth page */}
-          <Route
-            path="/auth"
-            element={
-              <SignedOut>
-                <Auth />
-              </SignedOut>
-            }
-          />
-
-          {/* Fallback */}
-          <Route path="*" element={<RedirectToSignIn />} />
-        </Routes>
-      </Router>
+            {/* Auth routes - wildcard to handle Clerk's multi-step flows */}
+            <Route
+              path="/auth/*"
+              element={
+                <>
+                  <SignedOut>
+                    <Auth />
+                  </SignedOut>
+                  <SignedIn>
+                    <Navigate to="/" replace />
+                  </SignedIn>
+                </>
+              }
+            />
+          </Routes>
+        </Router>
+      </ClerkLoaded>
     </ClerkProvider>
   );
 }

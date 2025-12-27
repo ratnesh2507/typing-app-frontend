@@ -26,7 +26,7 @@ export default function Results() {
 
   const userList = Object.values(users);
 
-  const winner = userList
+  const winner = [...userList]
     .filter((u) => !u.disqualified)
     .sort((a, b) => b.wpm - a.wpm)[0];
 
@@ -44,7 +44,7 @@ export default function Results() {
         )}
 
         <div className="flex flex-col gap-4 w-full max-w-md mt-4">
-          {userList
+          {[...userList]
             .sort((a, b) => b.wpm - a.wpm)
             .map((user, idx) => (
               <PlayerCard

@@ -9,6 +9,7 @@ interface User {
   username: string;
   progress: number;
   finished: boolean;
+  disqualified?: boolean; // optional
 }
 
 export default function Lobby() {
@@ -35,6 +36,11 @@ export default function Lobby() {
     setUsers(users);
   });
 
+  // Non-host receives full users list immediately upon joining
+  useSocket("join-confirmed", ({ users }) => {
+    setUsers(users);
+  });
+
   // Navigate to Race when server starts the race
   useSocket("race-started", ({ text }) => {
     navigate("/race", {
@@ -48,7 +54,7 @@ export default function Lobby() {
   });
 
   /* ===========================
-     JOIN ROOM LOGIC (CRITICAL FIX)
+     JOIN ROOM LOGIC
   ============================ */
 
   useEffect(() => {
@@ -94,7 +100,7 @@ export default function Lobby() {
               key={id}
               username={user.username}
               progress={user.progress}
-              disqualified={false}
+              disqualified={user.disqualified || false}
             />
           ))}
         </div>

@@ -1,53 +1,45 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { socket } from "../socket";
 import { useSocket } from "../hooks/useSocket";
 import Header from "../components/Header";
 import PlayerCard from "../components/PlayerCard";
+import { useUser } from "@clerk/clerk-react";
 
 interface User {
   username: string;
   progress: number;
   finished: boolean;
-  disqualified?: boolean; // optional
+  disqualified?: boolean;
 }
 
 export default function Lobby() {
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const state = location.state as {
-    roomId: string;
-    username: string;
-    isHost: boolean;
-  };
-
-  const [roomId] = useState(state?.roomId || "");
-  const [username] = useState(state?.username || "Guest");
-  const [isHost] = useState(state?.isHost || false);
+  const { user } = useUser(); // Get authenticated user
+  const [roomId, setRoomId] = useState("");
+  const [isHost, setIsHost] = useState(false);
   const [users, setUsers] = useState<Record<string, User>>({});
+
+  const username = user?.firstName || user?.username || "Guest";
 
   /* ===========================
      SOCKET LISTENERS
   ============================ */
 
-  // Update players list when anyone joins/leaves
   useSocket("user-joined", ({ users }) => {
     setUsers(users);
   });
 
-  // Non-host receives full users list immediately upon joining
   useSocket("join-confirmed", ({ users }) => {
     setUsers(users);
   });
 
-  // Navigate to Race when server starts the race
-  useSocket("race-started", ({ text }) => {
+  useSocket("race-started", ({ text, users: serverUsers }) => {
     navigate("/race", {
       state: {
         roomId,
         text,
-        users,
+        users: serverUsers,
         username,
       },
     });
@@ -60,8 +52,7 @@ export default function Lobby() {
   useEffect(() => {
     if (!roomId || !username) return;
 
-    // Host already joined via create-room
-    // Non-host must explicitly join here
+    // Non-host joins room automatically if roomId is set
     if (!isHost) {
       socket.emit("join-room", { roomId, username });
     }
@@ -75,10 +66,6 @@ export default function Lobby() {
     if (!roomId) return;
     socket.emit("start-race", { roomId });
   };
-
-  /* ===========================
-     UI
-  ============================ */
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">

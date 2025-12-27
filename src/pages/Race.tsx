@@ -3,9 +3,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from "../socket";
 import { useSocket } from "../hooks/useSocket";
 import Header from "../components/Header";
+import PlayerCard from "../components/PlayerCard";
 import { calculateWPM } from "../utils/wpm";
 import { calculateAccuracy } from "../utils/accuracy";
 import { toast } from "react-hot-toast";
+import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
 
 interface User {
   username: string;
@@ -31,9 +33,7 @@ export default function Race() {
 
   /* -------------------- SAFETY GUARD -------------------- */
   useEffect(() => {
-    if (!state) {
-      navigate("/", { replace: true });
-    }
+    if (!state) navigate("/", { replace: true });
   }, [state, navigate]);
 
   if (!state) return null;
@@ -74,14 +74,10 @@ export default function Race() {
   };
 
   /* -------------------- SOCKET EVENTS -------------------- */
-
   useSocket("progress-update", ({ socketId, progress }) => {
     setUsers((prev) => {
       if (!prev[socketId]) return prev;
-      return {
-        ...prev,
-        [socketId]: { ...prev[socketId], progress },
-      };
+      return { ...prev, [socketId]: { ...prev[socketId], progress } };
     });
   });
 
@@ -128,10 +124,7 @@ export default function Race() {
     }
     setCorrectChars(correct);
 
-    socket.emit("typing-progress", {
-      roomId,
-      typedText: value,
-    });
+    socket.emit("typing-progress", { roomId, typedText: value });
   };
 
   /* -------------------- DERIVED STATS -------------------- */
@@ -142,93 +135,87 @@ export default function Race() {
       100,
       Math.round((correctChars / text.length) * 100)
     );
-
     return { wpm, accuracy, progressPercent };
   }, [correctChars, elapsedTime, typed.length, text.length]);
 
   /* -------------------- UI -------------------- */
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <Header username={username} />
+    <>
+      <SignedIn>
+        <div className="min-h-screen flex flex-col bg-gray-50">
+          <Header username={username} />
 
-      <main className="flex flex-col items-center flex-1 p-6 gap-4">
-        <h2 className="text-3xl font-bold">Race</h2>
-        <p className="text-gray-600">Time: {Math.floor(elapsedTime)}s</p>
+          <main className="flex flex-col items-center flex-1 p-6 gap-4">
+            <h2 className="text-3xl font-bold">Race</h2>
+            <p className="text-gray-600">Time: {Math.floor(elapsedTime)}s</p>
 
-        {/* TEXT */}
-        <div className="w-full max-w-3xl p-4 border rounded bg-white">
-          <p className="mb-3 leading-relaxed">
-            {text.split("").map((char, idx) => {
-              const typedChar = typed[idx];
-              return (
-                <span
-                  key={idx}
-                  className={
-                    idx < typed.length
-                      ? typedChar === char
-                        ? "text-green-500"
-                        : "text-red-500"
-                      : ""
-                  }
-                >
-                  {char}
-                </span>
-              );
-            })}
-          </p>
+            {/* TEXT */}
+            <div className="w-full max-w-3xl p-4 border rounded bg-white">
+              <p className="mb-3 leading-relaxed">
+                {text.split("").map((char, idx) => {
+                  const typedChar = typed[idx];
+                  return (
+                    <span
+                      key={idx}
+                      className={
+                        idx < typed.length
+                          ? typedChar === char
+                            ? "text-green-500"
+                            : "text-red-500"
+                          : ""
+                      }
+                    >
+                      {char}
+                    </span>
+                  );
+                })}
+              </p>
 
-          <textarea
-            className="w-full border rounded p-2 text-lg"
-            rows={3}
-            value={typed}
-            onChange={handleTyping}
-            disabled={finished || disqualified}
-            placeholder={
-              disqualified ? "You are disqualified" : "Start typing..."
-            }
-          />
-        </div>
-
-        {/* STATS */}
-        <div className="flex gap-6 mt-4">
-          <p>
-            WPM: <strong>{stats.wpm}</strong>
-          </p>
-          <p>
-            Accuracy: <strong>{stats.accuracy}%</strong>
-          </p>
-          <p>
-            Progress: <strong>{stats.progressPercent}%</strong>
-          </p>
-        </div>
-
-        {/* PLAYERS */}
-        <div className="w-full max-w-md mt-6">
-          {Object.entries(users).map(([id, user]) => (
-            <div key={id} className="mb-3">
-              <div className="flex justify-between">
-                <span>{user.username}</span>
-                {user.disqualified ? (
-                  <span className="text-red-600 text-sm">
-                    ❌ DQ {user.dqReason && `(${user.dqReason})`}
-                  </span>
-                ) : (
-                  <span>{user.progress}%</span>
-                )}
-              </div>
-
-              <div className="h-2 bg-gray-200 rounded mt-1">
-                <div
-                  className={`h-2 rounded ${
-                    user.disqualified ? "bg-red-500" : "bg-blue-500"
-                  }`}
-                  style={{ width: `${user.progress}%` }}
-                />
-              </div>
+              <textarea
+                className="w-full border rounded p-2 text-lg"
+                rows={3}
+                value={typed}
+                onChange={handleTyping}
+                disabled={finished || disqualified}
+                placeholder={
+                  disqualified ? "You are disqualified" : "Start typing..."
+                }
+              />
             </div>
-          ))}
+
+            {/* STATS */}
+            <div className="flex gap-6 mt-4">
+              <p>
+                WPM: <strong>{stats.wpm}</strong>
+              </p>
+              <p>
+                Accuracy: <strong>{stats.accuracy}%</strong>
+              </p>
+              <p>
+                Progress: <strong>{stats.progressPercent}%</strong>
+              </p>
+            </div>
+
+            {/* PLAYERS */}
+            <div className="w-full max-w-md mt-6 flex flex-col gap-2">
+              {Object.entries(users).map(([id, user]) => (
+                <PlayerCard
+                  key={id}
+                  username={user.username}
+                  progress={user.progress}
+                  wpm={user.wpm}
+                  accuracy={user.accuracy}
+                  disqualified={user.disqualified}
+                />
+              ))}
+            </div>
+          </main>
         </div>
-      </main>
-    </div>
+      </SignedIn>
+
+      <SignedOut>
+        <RedirectToSignIn />
+      </SignedOut>
+    </>
   );
 }

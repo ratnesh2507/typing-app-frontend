@@ -1,14 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { socket } from "../socket";
+import { useUser } from "@clerk/clerk-react";
 import Header from "../components/Header";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { user } = useUser(); // Get authenticated user from Clerk
   const [username, setUsername] = useState("");
 
+  useEffect(() => {
+    if (user?.firstName) setUsername(user.firstName);
+    else if (user?.username) setUsername(user.username);
+  }, [user]);
+
   const handleCreateRoom = () => {
-    if (!username.trim()) return alert("Enter a username");
+    if (!username.trim()) return alert("Username not available");
 
     socket.once("room-created", ({ roomId }) => {
       navigate("/lobby", {
@@ -20,7 +27,7 @@ export default function Dashboard() {
   };
 
   const handleJoinRoom = () => {
-    if (!username.trim()) return alert("Enter a username");
+    if (!username.trim()) return alert("Username not available");
 
     const roomId = prompt("Enter Room ID");
     if (!roomId) return;
@@ -40,14 +47,6 @@ export default function Dashboard() {
 
       <main className="flex flex-col items-center justify-center flex-1 gap-6 p-6">
         <h1 className="text-5xl font-bold text-center">Typing Battle</h1>
-
-        <input
-          type="text"
-          placeholder="Enter username"
-          className="border p-2 rounded w-64 text-lg"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
 
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
           <button

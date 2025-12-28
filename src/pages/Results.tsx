@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import PlayerCard from "../components/PlayerCard";
 import Podium from "../components/Podium";
+import RaceSummaryCard from "../components/RaceSummaryCard";
 import {
   SignedIn,
   SignedOut,
@@ -99,7 +100,8 @@ export default function Results() {
         <div className="w-screen h-screen flex flex-col bg-background text-text overflow-hidden">
           <Header username={currentUsername} />
 
-          <main className="flex flex-col items-center flex-1 p-6 gap-8 w-full">
+          <main className="flex flex-col items-center p-6 gap-8 w-full overflow-y-auto">
+            {/* Title */}
             <h2 className="text-4xl font-bold font-mono tracking-wide">
               Race Results
             </h2>
@@ -116,26 +118,37 @@ export default function Results() {
               </p>
             )}
 
-            {/* Players List */}
-            <div className="w-full max-w-md flex-1 flex flex-col gap-3 overflow-y-auto">
-              {sortedPlayers.map((player, index) => (
-                <PlayerCard
-                  key={index}
-                  username={player.username}
-                  progress={player.progress}
-                  wpm={player.wpm}
-                  accuracy={player.accuracy} // <- now shows exact percentage
-                  disqualified={player.disqualified}
-                  dqReason={player.dqReason}
-                  highlight={player.username === currentUsername}
-                />
-              ))}
+            {/* Two-column layout */}
+            <div className="w-full flex gap-4 mt-6 justify-center">
+              {/* Left Column - Race Summary */}
+              <div className="w-full max-w-sm shrink-0">
+                <RaceSummaryCard users={userList} />
+              </div>
+
+              {/* Right Column - Players List */}
+              <div className="w-full max-w-md flex flex-col gap-3 max-h-[70vh] overflow-y-auto">
+                <h2 className="text-4xl font-bold font-mono tracking-wide">
+                  Players List
+                </h2>
+                {sortedPlayers.map((player, index) => (
+                  <PlayerCard
+                    key={index}
+                    username={player.username}
+                    progress={player.progress}
+                    wpm={player.wpm}
+                    accuracy={player.accuracy}
+                    disqualified={player.disqualified}
+                    dqReason={player.dqReason}
+                    highlight={player.username === currentUsername}
+                  />
+                ))}
+              </div>
             </div>
 
             {/* Actions */}
             <button
               onClick={() => navigate("/")}
-              className="px-8 py-3 rounded-lg font-mono font-semibold bg-accent text-background shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
+              className="px-8 py-3 rounded-lg font-mono shadow-[0_0_20px_#E94560] font-semibold bg-accent text-background hover:shadow-xl hover:scale-105 transition-all duration-200"
             >
               Back to Dashboard
             </button>

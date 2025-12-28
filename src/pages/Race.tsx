@@ -6,7 +6,7 @@ import Header from "../components/Header";
 import PlayerCard from "../components/PlayerCard";
 import TypingArea from "../components/TypingArea";
 import { calculateWPM } from "../utils/wpm";
-import { calculateAccuracy } from "../utils/accuracy";
+// import { calculateAccuracy } from "../utils/accuracy";
 import { toast } from "react-hot-toast";
 import {
   SignedIn,
@@ -51,7 +51,7 @@ export default function Race() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [users, setUsers] = useState<Record<string, User>>({});
   const [disqualified, setDisqualified] = useState(false);
-  const [finished, setFinished] = useState(false);
+  // const [finished, setFinished] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -80,7 +80,7 @@ export default function Race() {
 
   /* -------------------- TIMER -------------------- */
   useEffect(() => {
-    if (!startTime || disqualified || finished) return;
+    if (!startTime || disqualified) return;
     if (timerRef.current) return; // prevent multiple intervals
 
     timerRef.current = setInterval(() => {
@@ -91,13 +91,21 @@ export default function Race() {
       if (timerRef.current) clearInterval(timerRef.current);
       timerRef.current = null;
     };
-  }, [startTime, disqualified, finished]);
+  }, [startTime, disqualified]);
 
   /* -------------------- SOCKET EVENTS -------------------- */
-  useSocket("progress-update", ({ socketId, progress }) => {
+  useSocket("progress-update", ({ socketId, progress, wpm, accuracy }) => {
     setUsers((prev) =>
       prev[socketId]
-        ? { ...prev, [socketId]: { ...prev[socketId], progress } }
+        ? {
+            ...prev,
+            [socketId]: {
+              ...prev[socketId],
+              progress,
+              wpm,
+              accuracy,
+            },
+          }
         : prev
     );
   });
@@ -127,7 +135,7 @@ export default function Race() {
 
   /* -------------------- TYPING -------------------- */
   const handleTyping = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    if (disqualified || finished) return;
+    if (disqualified) return;
 
     const value = e.target.value;
     setTyped(value);
@@ -144,16 +152,16 @@ export default function Race() {
       typedText: value,
     });
 
-    // Finish detection
-    if (!finished && correct === text.length) {
-      setFinished(true);
+    // // Finish detection
+    // if (!finished && correct === text.length) {
+    //   setFinished(true);
 
-      socket.emit("user-finished", {
-        roomId,
-        wpm: calculateWPM(correct, elapsedTime),
-        accuracy: calculateAccuracy(correct, value.length),
-      });
-    }
+    //   socket.emit("user-finished", {
+    //     roomId,
+    //     wpm: calculateWPM(correct, elapsedTime),
+    //     accuracy: calculateAccuracy(correct, value.length),
+    //   });
+    // }
   };
 
   /* -------------------- STATS -------------------- */
@@ -203,7 +211,6 @@ export default function Race() {
                 typed={typed}
                 handleTyping={handleTyping}
                 disqualified={disqualified}
-                finished={finished}
               />
             </div>
 

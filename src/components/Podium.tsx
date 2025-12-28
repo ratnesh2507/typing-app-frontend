@@ -3,6 +3,7 @@ interface PodiumProps {
     username: string;
     wpm: number;
   }[];
+  currentUsername?: string;
 }
 
 const podiumStyles = [
@@ -23,34 +24,30 @@ const podiumStyles = [
   },
 ];
 
-export default function Podium({ winners }: PodiumProps) {
+export default function Podium({ winners, currentUsername }: PodiumProps) {
   return (
     <div className="flex justify-center items-end gap-6 mt-8">
       {winners.map((player, index) => {
         const heightClass = ["h-40", "h-32", "h-24"][index];
         const style = podiumStyles[index];
+        const isCurrent = player.username === currentUsername;
 
         return (
           <div
             key={index}
             className="flex flex-col items-center opacity-0 animate-podium"
-            style={{
-              animationDelay: `${index * 150}ms`,
-            }}
+            style={{ animationDelay: `${index * 150}ms` }}
           >
             <div
-              className={`
-                w-24
-                ${heightClass}
-                rounded-t-xl
-                ${style.base}
-                ${style.glow}
-                ${style.ring}
-                flex items-end justify-center
-                transition-transform
-                duration-300
-                hover:scale-110
-              `}
+              className={`w-24 ${heightClass} rounded-t-xl ${style.base} ${
+                style.glow
+              } ${
+                style.ring
+              } flex items-end justify-center transition-transform duration-300 hover:scale-110 ${
+                isCurrent
+                  ? "ring-4 ring-yellow-400 shadow-[0_0_30px_#FFD700]"
+                  : ""
+              }`}
             >
               <span className="mb-2 text-background font-mono font-bold text-lg">
                 {player.wpm} WPM

@@ -44,7 +44,7 @@ export default function Results() {
 
   if (!state) return null;
 
-  const username = user?.firstName || user?.username || "Guest";
+  const currentUsername = user?.firstName || user?.username || "Guest";
   const userList = Object.values(state.users);
 
   /* -------------------- PODIUM DATA -------------------- */
@@ -68,23 +68,15 @@ export default function Results() {
   useEffect(() => {
     if (podiumWinners.length > 0) {
       setShowConfetti(true);
-
-      const timeout = setTimeout(() => {
-        setShowConfetti(false);
-      }, 2500); // burst for 2.5s
-
+      const timeout = setTimeout(() => setShowConfetti(false), 2500);
       return () => clearTimeout(timeout);
     }
-  }, []);
+  }, [podiumWinners]);
 
   /* -------------------- WINDOW RESIZE -------------------- */
   useEffect(() => {
     const handleResize = () =>
-      setDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-
+      setDimensions({ width: window.innerWidth, height: window.innerHeight });
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -105,7 +97,7 @@ export default function Results() {
         )}
 
         <div className="w-screen h-screen flex flex-col bg-background text-text overflow-hidden">
-          <Header username={username} />
+          <Header username={currentUsername} />
 
           <main className="flex flex-col items-center flex-1 p-6 gap-8 w-full">
             <h2 className="text-4xl font-bold font-mono tracking-wide">
@@ -114,14 +106,17 @@ export default function Results() {
 
             {/* 🏆 Podium */}
             {podiumWinners.length > 0 ? (
-              <Podium winners={podiumWinners} />
+              <Podium
+                winners={podiumWinners}
+                currentUsername={currentUsername}
+              />
             ) : (
               <p className="text-gray-500 mt-4">
                 No valid finishers in this race.
               </p>
             )}
 
-            {/* Players List - scrollable if needed */}
+            {/* Players List */}
             <div className="w-full max-w-md flex-1 flex flex-col gap-3 overflow-y-auto">
               {sortedPlayers.map((player, index) => (
                 <PlayerCard
@@ -129,9 +124,10 @@ export default function Results() {
                   username={player.username}
                   progress={player.progress}
                   wpm={player.wpm}
-                  accuracy={player.accuracy}
+                  accuracy={player.accuracy} // <- now shows exact percentage
                   disqualified={player.disqualified}
                   dqReason={player.dqReason}
+                  highlight={player.username === currentUsername}
                 />
               ))}
             </div>
@@ -139,20 +135,7 @@ export default function Results() {
             {/* Actions */}
             <button
               onClick={() => navigate("/")}
-              className="
-        px-8
-        py-3
-        rounded-lg
-        font-mono
-        font-semibold
-        bg-accent
-        text-background
-        shadow-lg
-        hover:shadow-xl
-        hover:scale-105
-        transition-all
-        duration-200
-      "
+              className="px-8 py-3 rounded-lg font-mono font-semibold bg-accent text-background shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
             >
               Back to Dashboard
             </button>

@@ -7,6 +7,7 @@ interface PlayerCardProps {
   accuracy?: number;
   disqualified?: boolean;
   dqReason?: string;
+  highlight?: boolean;
 }
 
 const PlayerCard: React.FC<PlayerCardProps> = ({
@@ -16,14 +17,25 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
   accuracy,
   disqualified,
   dqReason,
+  highlight,
 }) => {
   return (
     <div
-      className="p-3 rounded-lg font-mono shadow-md hover:shadow-lg transition-shadow duration-200"
+      className={`p-3 rounded-lg font-mono shadow-md hover:shadow-lg transition-shadow duration-200 ${
+        highlight ? "bg-yellow-200 border border-yellow-400" : ""
+      }`}
       style={{
-        backgroundColor: disqualified ? "#00D1FF" : "#1A1A2E", // incorrect : background
-        borderColor: disqualified ? "#00D1FF" : "#FFEE63", // incorrect : accent
-        color: disqualified ? "#1A1A2E" : "#6B728E", // background : text
+        backgroundColor: highlight
+          ? "#FFFBCC"
+          : disqualified
+          ? "#00D1FF"
+          : "#1A1A2E",
+        borderColor: highlight
+          ? "#FFD700"
+          : disqualified
+          ? "#00D1FF"
+          : "#FFEE63",
+        color: highlight ? "#1A1A2E" : disqualified ? "#1A1A2E" : "#6B728E",
       }}
     >
       <div className="flex justify-between items-center mb-1">

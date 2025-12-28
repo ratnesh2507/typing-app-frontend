@@ -4,6 +4,7 @@ import { socket } from "../socket";
 import { useSocket } from "../hooks/useSocket";
 import Header from "../components/Header";
 import PlayerCard from "../components/PlayerCard";
+import TypingArea from "../components/TypingArea";
 import { calculateWPM } from "../utils/wpm";
 import { calculateAccuracy } from "../utils/accuracy";
 import { toast } from "react-hot-toast";
@@ -131,10 +132,10 @@ export default function Race() {
     const value = e.target.value;
     setTyped(value);
 
+    // Count correct chars in correct positions
     let correct = 0;
     for (let i = 0; i < Math.min(value.length, text.length); i++) {
       if (value[i] === text[i]) correct++;
-      else break;
     }
     setCorrectChars(correct);
 
@@ -143,7 +144,7 @@ export default function Race() {
       typedText: value,
     });
 
-    // -------------------- FINISH DETECTION --------------------
+    // Finish detection
     if (!finished && correct === text.length) {
       setFinished(true);
 
@@ -156,65 +157,57 @@ export default function Race() {
   };
 
   /* -------------------- STATS -------------------- */
-  const stats = useMemo(
-    () => ({
-      wpm: calculateWPM(correctChars, elapsedTime),
-      accuracy: calculateAccuracy(correctChars, typed.length),
-      progress: text.length
-        ? Math.min(100, Math.round((correctChars / text.length) * 100))
-        : 0,
-    }),
-    [correctChars, elapsedTime, typed.length, text.length]
-  );
+  const stats = useMemo(() => {
+    const progress = text.length
+      ? Math.min(100, Math.round((correctChars / text.length) * 100))
+      : 0;
+    const accuracy = typed.length
+      ? Math.round((correctChars / typed.length) * 100)
+      : 100;
+    const wpm = elapsedTime > 0 ? calculateWPM(correctChars, elapsedTime) : 0;
+    return { progress, accuracy, wpm };
+  }, [correctChars, typed.length, text.length, elapsedTime]);
 
   /* -------------------- UI -------------------- */
   return (
     <>
       <SignedIn>
-        <div className="min-h-screen flex flex-col bg-gray-50">
+        <div className="min-h-screen flex flex-col bg-background text-text">
           <Header username={username} />
 
           <main className="flex flex-col items-center flex-1 p-6 gap-4">
             <h2 className="text-3xl font-bold">Race</h2>
             <p className="text-gray-600">Time: {elapsedTime}s</p>
 
-            <div className="w-full max-w-3xl p-4 border rounded bg-white">
-              <p className="mb-3 leading-relaxed">
+            <div className="w-full max-w-3xl p-4 border rounded bg-background">
+              {/* Typing Text */}
+              <p className="mb-3 leading-relaxed text-lg">
                 {text.split("").map((char, idx) => {
                   const typedChar = typed[idx];
+                  const color =
+                    idx < typed.length
+                      ? typedChar === char
+                        ? "#E94560" // correct
+                        : "#00D1FF" // incorrect
+                      : "#6B728E"; // default gray
                   return (
-                    <span
-                      key={idx}
-                      className={
-                        idx < typed.length
-                          ? typedChar === char
-                            ? "text-green-500"
-                            : "text-red-500"
-                          : ""
-                      }
-                    >
+                    <span key={idx} style={{ color }}>
                       {char}
                     </span>
                   );
                 })}
               </p>
 
-              <textarea
-                className="w-full border rounded p-2 text-lg"
-                rows={3}
-                value={typed}
-                onChange={handleTyping}
-                disabled={disqualified || finished}
-                placeholder={
-                  disqualified
-                    ? "You are disqualified"
-                    : finished
-                    ? "Finished!"
-                    : "Start typing..."
-                }
+              {/* Textarea */}
+              <TypingArea
+                typed={typed}
+                handleTyping={handleTyping}
+                disqualified={disqualified}
+                finished={finished}
               />
             </div>
 
+            {/* Stats */}
             <div className="flex gap-6">
               <p>
                 WPM: <strong>{stats.wpm}</strong>
@@ -227,15 +220,17 @@ export default function Race() {
               </p>
             </div>
 
+            {/* Players */}
             <div className="w-full max-w-md mt-6 flex flex-col gap-2">
               {Object.entries(users).map(([id, user]) => (
                 <PlayerCard
                   key={id}
                   username={user.username}
                   progress={user.progress}
-                  wpm={user.wpm}
-                  accuracy={user.accuracy}
+                  wpm={user.wpm ?? 0}
+                  accuracy={user.accuracy ?? 0}
                   disqualified={user.disqualified}
+                  dqReason={user.dqReason}
                 />
               ))}
             </div>

@@ -19,16 +19,23 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
 }) => {
   return (
     <div
-      className={`p-3 rounded-lg border font-mono ${
-        disqualified
-          ? "bg-incorrect border-incorrect text-background"
-          : "bg-background border-accent text-text"
-      } shadow-md hover:shadow-lg transition-shadow duration-200`}
+      className="p-3 rounded-lg font-mono shadow-md hover:shadow-lg transition-shadow duration-200"
+      style={{
+        backgroundColor: disqualified ? "#00D1FF" : "#1A1A2E", // incorrect : background
+        borderColor: disqualified ? "#00D1FF" : "#FFEE63", // incorrect : accent
+        color: disqualified ? "#1A1A2E" : "#6B728E", // background : text
+      }}
     >
       <div className="flex justify-between items-center mb-1">
         <span className="font-semibold">{username}</span>
         {disqualified && (
-          <span className="text-background bg-incorrect px-1 rounded text-sm">
+          <span
+            className="px-1 rounded text-sm"
+            style={{
+              backgroundColor: "#00D1FF",
+              color: "#1A1A2E",
+            }}
+          >
             ❌ DQ {dqReason && `(${dqReason})`}
           </span>
         )}
@@ -36,10 +43,12 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
 
       <div className="h-3 bg-gray-700 rounded overflow-hidden">
         <div
-          className={`h-3 rounded ${
-            disqualified ? "bg-incorrect" : "bg-correct"
-          }`}
-          style={{ width: `${progress}%`, transition: "width 0.3s ease" }}
+          className="h-3 rounded"
+          style={{
+            width: `${progress}%`,
+            backgroundColor: disqualified ? "#00D1FF" : "#FFEE63",
+            transition: "width 0.3s ease",
+          }}
         />
       </div>
 

@@ -24,7 +24,7 @@ const TypingArea: React.FC<TypingAreaProps> = ({
         bg-background
         text-text
         border-2
-        border-gray-700
+        ${disqualified ? "border-incorrect" : "border-gray-700"}
         placeholder:text-gray-500
         focus:outline-none
         focus:ring-2
@@ -35,7 +35,7 @@ const TypingArea: React.FC<TypingAreaProps> = ({
         caret-accent
         ${disqualified || finished ? "opacity-70 cursor-not-allowed" : ""}
       `}
-      rows={4}
+      rows={3}
       value={typed}
       onChange={handleTyping}
       disabled={disqualified || finished}

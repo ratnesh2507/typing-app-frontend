@@ -1,7 +1,13 @@
+import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import PlayerCard from "../components/PlayerCard";
-import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
+import {
+  SignedIn,
+  SignedOut,
+  RedirectToSignIn,
+  useUser,
+} from "@clerk/clerk-react";
 
 interface User {
   username: string;
@@ -16,6 +22,7 @@ interface User {
 export default function Results() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useUser();
 
   const state = location.state as {
     roomId: string;
@@ -23,12 +30,14 @@ export default function Results() {
     users: Record<string, User>;
   } | null;
 
-  if (!state) {
-    navigate("/", { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    if (!state) navigate("/", { replace: true });
+  }, [state, navigate]);
 
-  const { users, username } = state;
+  if (!state) return null;
+
+  const { users } = state;
+  const username = user?.firstName || user?.username || "Guest";
 
   const userList = Object.values(users);
 
@@ -45,10 +54,14 @@ export default function Results() {
           <main className="flex flex-col items-center flex-1 p-6 gap-6">
             <h2 className="text-3xl font-bold">Race Results</h2>
 
-            {winner && (
+            {winner ? (
               <div className="bg-yellow-100 p-4 rounded shadow w-full max-w-md text-center">
                 🏆 Winner: <strong>{winner.username}</strong> ({winner.wpm} WPM)
               </div>
+            ) : (
+              <p className="text-gray-600">
+                No participants finished the race.
+              </p>
             )}
 
             <div className="flex flex-col gap-4 w-full max-w-md mt-4">

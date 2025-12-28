@@ -46,7 +46,10 @@ export default function Dashboard() {
       <Header username={username || "Guest"} />
 
       <main className="flex flex-col items-center justify-center flex-1 gap-6 p-6">
-        <h1 className="text-5xl font-bold text-center">Typing Battle</h1>
+        <h1 className="text-5xl font-bold text-center">RapidType</h1>
+        <p>
+          <em>A place to test your typing skills against your friends.</em>
+        </p>
 
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
           <button

@@ -50,8 +50,8 @@ export default function Race() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [users, setUsers] = useState<Record<string, User>>({});
   const [disqualified, setDisqualified] = useState(false);
+  const [startTime, setStartTime] = useState<number | null>(null);
 
-  const startTimeRef = useRef<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   /* -------------------- SYNC RACE ON LOAD -------------------- */
@@ -72,22 +72,22 @@ export default function Race() {
     }
 
     if (status === "running" && startTime) {
-      startTimeRef.current = startTime;
+      setStartTime(startTime);
     }
   });
 
-  /* -------------------- TIMER -------------------- */
+  /* -------------------- TIMER (FIXED) -------------------- */
   useEffect(() => {
-    if (!startTimeRef.current || disqualified) return;
+    if (!startTime || disqualified) return;
 
     timerRef.current = setInterval(() => {
-      setElapsedTime(Math.floor((Date.now() - startTimeRef.current!) / 1000));
+      setElapsedTime(Math.floor((Date.now() - startTime) / 1000));
     }, 1000);
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [disqualified]);
+  }, [startTime, disqualified]);
 
   /* -------------------- SOCKET EVENTS -------------------- */
   useSocket("progress-update", ({ socketId, progress }) => {
@@ -143,13 +143,16 @@ export default function Race() {
   };
 
   /* -------------------- STATS -------------------- */
-  const stats = useMemo(() => {
-    return {
+  const stats = useMemo(
+    () => ({
       wpm: calculateWPM(correctChars, elapsedTime),
       accuracy: calculateAccuracy(correctChars, typed.length),
-      progress: Math.min(100, Math.round((correctChars / text.length) * 100)),
-    };
-  }, [correctChars, elapsedTime, typed.length, text.length]);
+      progress: text.length
+        ? Math.min(100, Math.round((correctChars / text.length) * 100))
+        : 0,
+    }),
+    [correctChars, elapsedTime, typed.length, text.length]
+  );
 
   /* -------------------- UI -------------------- */
   return (
@@ -162,7 +165,6 @@ export default function Race() {
             <h2 className="text-3xl font-bold">Race</h2>
             <p className="text-gray-600">Time: {elapsedTime}s</p>
 
-            {/* TEXT */}
             <div className="w-full max-w-3xl p-4 border rounded bg-white">
               <p className="mb-3 leading-relaxed">
                 {text.split("").map((char, idx) => {
@@ -196,7 +198,6 @@ export default function Race() {
               />
             </div>
 
-            {/* STATS */}
             <div className="flex gap-6">
               <p>
                 WPM: <strong>{stats.wpm}</strong>
@@ -209,7 +210,6 @@ export default function Race() {
               </p>
             </div>
 
-            {/* PLAYERS */}
             <div className="w-full max-w-md mt-6 flex flex-col gap-2">
               {Object.entries(users).map(([id, user]) => (
                 <PlayerCard

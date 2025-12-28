@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import PlayerCard from "../components/PlayerCard";
+import Podium from "../components/Podium";
 import {
   SignedIn,
   SignedOut,
@@ -35,53 +36,82 @@ export default function Results() {
 
   if (!state) return null;
 
-  const { users } = state;
   const username = user?.firstName || user?.username || "Guest";
+  const userList = Object.values(state.users);
 
-  const userList = Object.values(users);
+  /* -------------------- PODIUM DATA -------------------- */
+  const podiumWinners = useMemo(
+    () =>
+      [...userList]
+        .filter((u) => !u.disqualified)
+        .sort((a, b) => b.wpm - a.wpm)
+        .slice(0, 3)
+        .map((u) => ({ username: u.username, wpm: u.wpm })),
+    [userList]
+  );
 
-  const winner = [...userList]
-    .filter((u) => !u.disqualified)
-    .sort((a, b) => b.wpm - a.wpm)[0];
+  /* -------------------- SORTED PLAYERS -------------------- */
+  const sortedPlayers = useMemo(
+    () => [...userList].sort((a, b) => b.wpm - a.wpm),
+    [userList]
+  );
 
   return (
     <>
       <SignedIn>
-        <div className="min-h-screen flex flex-col bg-gray-50">
+        <div className="min-h-screen flex flex-col bg-background text-text">
           <Header username={username} />
 
-          <main className="flex flex-col items-center flex-1 p-6 gap-6">
-            <h2 className="text-3xl font-bold">Race Results</h2>
+          <main className="flex flex-col items-center flex-1 p-6 gap-8">
+            <h2 className="text-4xl font-bold font-mono tracking-wide">
+              Race Results
+            </h2>
 
-            {winner ? (
-              <div className="bg-yellow-100 p-4 rounded shadow w-full max-w-md text-center">
-                🏆 Winner: <strong>{winner.username}</strong> ({winner.wpm} WPM)
-              </div>
+            {/* 🏆 Podium */}
+            {podiumWinners.length > 0 ? (
+              <Podium winners={podiumWinners} />
             ) : (
-              <p className="text-gray-600">
-                No participants finished the race.
+              <p className="text-gray-500 mt-4">
+                No valid finishers in this race.
               </p>
             )}
 
-            <div className="flex flex-col gap-4 w-full max-w-md mt-4">
-              {[...userList]
-                .sort((a, b) => b.wpm - a.wpm)
-                .map((user, idx) => (
-                  <PlayerCard
-                    key={idx}
-                    username={user.username}
-                    progress={user.progress}
-                    wpm={user.wpm}
-                    accuracy={user.accuracy}
-                    disqualified={user.disqualified}
-                    dqReason={user.dqReason}
-                  />
-                ))}
+            {/* Divider */}
+            <div className="w-full max-w-md h-px bg-gray-700 my-4" />
+
+            {/* Players List */}
+            <div className="w-full max-w-md flex flex-col gap-3">
+              {sortedPlayers.map((player, index) => (
+                <PlayerCard
+                  key={index}
+                  username={player.username}
+                  progress={player.progress}
+                  wpm={player.wpm}
+                  accuracy={player.accuracy}
+                  disqualified={player.disqualified}
+                  dqReason={player.dqReason}
+                />
+              ))}
             </div>
 
+            {/* Actions */}
             <button
-              className="mt-6 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition"
               onClick={() => navigate("/")}
+              className="
+                mt-6
+                px-8
+                py-3
+                rounded-lg
+                font-mono
+                font-semibold
+                bg-accent
+                text-background
+                shadow-lg
+                hover:shadow-xl
+                hover:scale-105
+                transition-all
+                duration-200
+              "
             >
               Back to Dashboard
             </button>

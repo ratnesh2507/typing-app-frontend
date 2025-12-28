@@ -10,6 +10,7 @@ import {
   SignedOut,
   ClerkLoaded,
 } from "@clerk/clerk-react";
+import { Toaster } from "react-hot-toast";
 
 import Dashboard from "./pages/Dashboard";
 import Lobby from "./pages/Lobby";
@@ -38,6 +39,20 @@ function App() {
   return (
     <ClerkProvider publishableKey={clerkPublishableKey}>
       <ClerkLoaded>
+        {/* Toaster container for toast messages */}
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 1500,
+            style: {
+              background: "#1A1A2E", // Deep Navy
+              color: "#FFEE63", // Cyber Yellow
+              fontFamily: "'JetBrains Mono', monospace",
+              fontWeight: 500,
+              boxShadow: "0 0 10px #FFEE63, 0 0 20px #FFEE63",
+            },
+          }}
+        />
         <Router>
           <Routes>
             {/* Protected routes */}

@@ -7,7 +7,12 @@ import PlayerCard from "../components/PlayerCard";
 import { calculateWPM } from "../utils/wpm";
 import { calculateAccuracy } from "../utils/accuracy";
 import { toast } from "react-hot-toast";
-import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
+import {
+  SignedIn,
+  SignedOut,
+  RedirectToSignIn,
+  useUser,
+} from "@clerk/clerk-react";
 
 interface User {
   username: string;
@@ -21,98 +26,104 @@ interface User {
 
 interface RaceState {
   roomId: string;
-  text: string;
-  users: Record<string, User>;
-  username: string;
 }
 
 export default function Race() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useUser();
+
   const state = location.state as RaceState | null;
+  const roomId = state?.roomId;
 
   /* -------------------- SAFETY GUARD -------------------- */
   useEffect(() => {
-    if (!state) navigate("/", { replace: true });
-  }, [state, navigate]);
+    if (!roomId) navigate("/", { replace: true });
+  }, [roomId, navigate]);
 
-  if (!state) return null;
-
-  const { roomId, text, username } = state;
+  const username = user?.firstName || user?.username || "Guest";
 
   /* -------------------- STATE -------------------- */
+  const [text, setText] = useState("");
   const [typed, setTyped] = useState("");
   const [correctChars, setCorrectChars] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [users, setUsers] = useState<Record<string, User>>(state.users || {});
-  const [finished, setFinished] = useState(false);
+  const [users, setUsers] = useState<Record<string, User>>({});
   const [disqualified, setDisqualified] = useState(false);
 
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef<number | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  /* -------------------- SYNC RACE ON LOAD -------------------- */
+  useEffect(() => {
+    if (!roomId) return;
+    socket.emit("sync-race-state", { roomId });
+  }, [roomId]);
+
+  useSocket("race-state", ({ status, text, startTime, users, results }) => {
+    setUsers(users);
+    setText(text);
+
+    if (status === "finished" && results) {
+      navigate("/results", {
+        state: { roomId, users: results, username },
+      });
+      return;
+    }
+
+    if (status === "running" && startTime) {
+      startTimeRef.current = startTime;
+    }
+  });
 
   /* -------------------- TIMER -------------------- */
   useEffect(() => {
-    if (finished || disqualified) return;
+    if (!startTimeRef.current || disqualified) return;
 
-    startTimeRef.current = Date.now();
     timerRef.current = setInterval(() => {
-      if (!startTimeRef.current) return;
-      setElapsedTime((Date.now() - startTimeRef.current) / 1000);
+      setElapsedTime(Math.floor((Date.now() - startTimeRef.current!) / 1000));
     }, 1000);
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [finished, disqualified]);
-
-  const stopTimer = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-  };
+  }, [disqualified]);
 
   /* -------------------- SOCKET EVENTS -------------------- */
   useSocket("progress-update", ({ socketId, progress }) => {
-    setUsers((prev) => {
-      if (!prev[socketId]) return prev;
-      return { ...prev, [socketId]: { ...prev[socketId], progress } };
-    });
+    setUsers((prev) =>
+      prev[socketId]
+        ? { ...prev, [socketId]: { ...prev[socketId], progress } }
+        : prev
+    );
   });
 
   useSocket("user-disqualified", ({ socketId, reason }) => {
-    setUsers((prev) => {
-      if (!prev[socketId]) return prev;
-      return {
-        ...prev,
-        [socketId]: {
-          ...prev[socketId],
-          disqualified: true,
-          finished: true,
-          dqReason: reason,
-        },
-      };
-    });
+    setUsers((prev) => ({
+      ...prev,
+      [socketId]: {
+        ...prev[socketId],
+        disqualified: true,
+        finished: true,
+        dqReason: reason,
+      },
+    }));
 
     if (socketId === socket.id) {
       setDisqualified(true);
-      stopTimer();
-      toast.error(`Disqualified: ${reason}`, { duration: 5000 });
+      toast.error(`Disqualified: ${reason}`);
     }
   });
 
   useSocket("race-ended", ({ results }) => {
-    setFinished(true);
-    stopTimer();
     navigate("/results", {
       state: { roomId, users: results, username },
     });
   });
 
-  /* -------------------- TYPING HANDLER -------------------- */
+  /* -------------------- TYPING -------------------- */
   const handleTyping = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    if (finished || disqualified) return;
+    if (disqualified) return;
 
     const value = e.target.value;
     setTyped(value);
@@ -122,20 +133,22 @@ export default function Race() {
       if (value[i] === text[i]) correct++;
       else break;
     }
+
     setCorrectChars(correct);
 
-    socket.emit("typing-progress", { roomId, typedText: value });
+    socket.emit("typing-progress", {
+      roomId,
+      typedText: value,
+    });
   };
 
-  /* -------------------- DERIVED STATS -------------------- */
+  /* -------------------- STATS -------------------- */
   const stats = useMemo(() => {
-    const wpm = calculateWPM(correctChars, elapsedTime);
-    const accuracy = calculateAccuracy(correctChars, typed.length);
-    const progressPercent = Math.min(
-      100,
-      Math.round((correctChars / text.length) * 100)
-    );
-    return { wpm, accuracy, progressPercent };
+    return {
+      wpm: calculateWPM(correctChars, elapsedTime),
+      accuracy: calculateAccuracy(correctChars, typed.length),
+      progress: Math.min(100, Math.round((correctChars / text.length) * 100)),
+    };
   }, [correctChars, elapsedTime, typed.length, text.length]);
 
   /* -------------------- UI -------------------- */
@@ -147,7 +160,7 @@ export default function Race() {
 
           <main className="flex flex-col items-center flex-1 p-6 gap-4">
             <h2 className="text-3xl font-bold">Race</h2>
-            <p className="text-gray-600">Time: {Math.floor(elapsedTime)}s</p>
+            <p className="text-gray-600">Time: {elapsedTime}s</p>
 
             {/* TEXT */}
             <div className="w-full max-w-3xl p-4 border rounded bg-white">
@@ -176,7 +189,7 @@ export default function Race() {
                 rows={3}
                 value={typed}
                 onChange={handleTyping}
-                disabled={finished || disqualified}
+                disabled={disqualified}
                 placeholder={
                   disqualified ? "You are disqualified" : "Start typing..."
                 }
@@ -184,7 +197,7 @@ export default function Race() {
             </div>
 
             {/* STATS */}
-            <div className="flex gap-6 mt-4">
+            <div className="flex gap-6">
               <p>
                 WPM: <strong>{stats.wpm}</strong>
               </p>
@@ -192,7 +205,7 @@ export default function Race() {
                 Accuracy: <strong>{stats.accuracy}%</strong>
               </p>
               <p>
-                Progress: <strong>{stats.progressPercent}%</strong>
+                Progress: <strong>{stats.progress}%</strong>
               </p>
             </div>
 

@@ -15,10 +15,10 @@ const Header: React.FC<HeaderProps> = ({ username }) => {
   const navigate = useNavigate();
 
   return (
-    <header className="flex justify-between items-center p-4 bg-gray-100 shadow-md">
+    <header className="flex justify-between items-center p-4 bg-background shadow-lg border-b border-accent">
       {/* Title */}
       <h1
-        className="text-2xl font-bold cursor-pointer"
+        className="text-3xl font-bold font-mono text-accent cursor-pointer hover:text-correct transition-colors duration-300"
         onClick={() => navigate("/")}
       >
         RapidType
@@ -28,9 +28,9 @@ const Header: React.FC<HeaderProps> = ({ username }) => {
       {username ? (
         <SignedIn>
           <div className="flex items-center gap-4">
-            <p className="text-gray-700">Hello, {username}</p>
+            <p className="text-text font-mono">Hello, {username}</p>
             <SignOutButton>
-              <button className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 cursor-pointer transition">
+              <button className="bg-correct text-background px-4 py-2 rounded-lg hover:brightness-125 transition-all duration-200">
                 Sign Out
               </button>
             </SignOutButton>
@@ -39,7 +39,7 @@ const Header: React.FC<HeaderProps> = ({ username }) => {
       ) : (
         <SignedOut>
           <SignInButton>
-            <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 cursor-pointer transition">
+            <button className="bg-accent text-background px-4 py-2 rounded-lg hover:brightness-125 transition-all duration-200">
               Sign In
             </button>
           </SignInButton>

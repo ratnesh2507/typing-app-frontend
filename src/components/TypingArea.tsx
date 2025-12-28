@@ -1,23 +1,53 @@
 import React from "react";
 
-interface PodiumProps {
-  winners: { username: string; wpm: number }[];
+interface TypingAreaProps {
+  typed: string;
+  handleTyping: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  disqualified?: boolean;
+  finished?: boolean;
 }
 
-const Podium: React.FC<PodiumProps> = ({ winners }) => {
+const TypingArea: React.FC<TypingAreaProps> = ({
+  typed,
+  handleTyping,
+  disqualified = false,
+  finished = false,
+}) => {
   return (
-    <div className="flex justify-center gap-6 mt-8">
-      {winners.map((w, i) => (
-        <div key={i} className="flex flex-col items-center">
-          <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center text-lg font-bold">
-            {i + 1}
-          </div>
-          <p className="mt-2">{w.username}</p>
-          <p>{w.wpm} WPM</p>
-        </div>
-      ))}
-    </div>
+    <textarea
+      className={`
+        w-full
+        rounded-md
+        p-4
+        text-lg
+        font-mono
+        bg-background
+        text-text
+        border-2
+        border-gray-700
+        placeholder:text-gray-500
+        focus:outline-none
+        focus:ring-2
+        focus:ring-accent
+        focus:border-accent
+        transition
+        duration-200
+        caret-accent
+        ${disqualified || finished ? "opacity-70 cursor-not-allowed" : ""}
+      `}
+      rows={4}
+      value={typed}
+      onChange={handleTyping}
+      disabled={disqualified || finished}
+      placeholder={
+        disqualified
+          ? "You are disqualified"
+          : finished
+          ? "Finished!"
+          : "Start typing..."
+      }
+    />
   );
 };
 
-export default Podium;
+export default TypingArea;

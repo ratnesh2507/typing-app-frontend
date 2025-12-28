@@ -6,7 +6,7 @@ import Header from "../components/Header";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user } = useUser(); // Get authenticated user from Clerk
+  const { user } = useUser(); // Authenticated user from Clerk
   const [username, setUsername] = useState("");
 
   useEffect(() => {
@@ -43,24 +43,25 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* Header with auth buttons */}
       <Header username={username || "Guest"} />
 
       <main className="flex flex-col items-center justify-center flex-1 gap-6 p-6">
         <h1 className="text-5xl font-bold text-center">RapidType</h1>
-        <p>
+        <p className="text-center">
           <em>A place to test your typing skills against your friends.</em>
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
           <button
-            className="bg-blue-500 text-white px-6 py-3 rounded-lg"
+            className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 cursor-pointer transition"
             onClick={handleCreateRoom}
           >
             Create Room
           </button>
 
           <button
-            className="bg-green-500 text-white px-6 py-3 rounded-lg"
+            className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 cursor-pointer transition"
             onClick={handleJoinRoom}
           >
             Join Room

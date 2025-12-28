@@ -100,6 +100,7 @@ export default function Lobby() {
   ============================ */
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* Updated header with auth buttons */}
       <Header username={username} />
 
       <main className="flex flex-col items-center flex-1 gap-6 p-6">

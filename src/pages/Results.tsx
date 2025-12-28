@@ -26,7 +26,6 @@ export default function Results() {
 
   const state = location.state as {
     roomId: string;
-    username: string;
     users: Record<string, User>;
   } | null;
 

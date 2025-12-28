@@ -50,6 +50,7 @@ export default function Race() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [users, setUsers] = useState<Record<string, User>>({});
   const [disqualified, setDisqualified] = useState(false);
+  const [finished, setFinished] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -76,9 +77,10 @@ export default function Race() {
     }
   });
 
-  /* -------------------- TIMER (FIXED) -------------------- */
+  /* -------------------- TIMER -------------------- */
   useEffect(() => {
-    if (!startTime || disqualified) return;
+    if (!startTime || disqualified || finished) return;
+    if (timerRef.current) return; // prevent multiple intervals
 
     timerRef.current = setInterval(() => {
       setElapsedTime(Math.floor((Date.now() - startTime) / 1000));
@@ -86,8 +88,9 @@ export default function Race() {
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
+      timerRef.current = null;
     };
-  }, [startTime, disqualified]);
+  }, [startTime, disqualified, finished]);
 
   /* -------------------- SOCKET EVENTS -------------------- */
   useSocket("progress-update", ({ socketId, progress }) => {
@@ -123,7 +126,7 @@ export default function Race() {
 
   /* -------------------- TYPING -------------------- */
   const handleTyping = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    if (disqualified) return;
+    if (disqualified || finished) return;
 
     const value = e.target.value;
     setTyped(value);
@@ -133,13 +136,23 @@ export default function Race() {
       if (value[i] === text[i]) correct++;
       else break;
     }
-
     setCorrectChars(correct);
 
     socket.emit("typing-progress", {
       roomId,
       typedText: value,
     });
+
+    // -------------------- FINISH DETECTION --------------------
+    if (!finished && correct === text.length) {
+      setFinished(true);
+
+      socket.emit("user-finished", {
+        roomId,
+        wpm: calculateWPM(correct, elapsedTime),
+        accuracy: calculateAccuracy(correct, value.length),
+      });
+    }
   };
 
   /* -------------------- STATS -------------------- */
@@ -191,9 +204,13 @@ export default function Race() {
                 rows={3}
                 value={typed}
                 onChange={handleTyping}
-                disabled={disqualified}
+                disabled={disqualified || finished}
                 placeholder={
-                  disqualified ? "You are disqualified" : "Start typing..."
+                  disqualified
+                    ? "You are disqualified"
+                    : finished
+                    ? "Finished!"
+                    : "Start typing..."
                 }
               />
             </div>

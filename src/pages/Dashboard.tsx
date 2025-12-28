@@ -6,7 +6,7 @@ import Header from "../components/Header";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user } = useUser(); // Authenticated user from Clerk
+  const { user } = useUser();
   const [username, setUsername] = useState("");
 
   useEffect(() => {
@@ -42,26 +42,30 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Header with auth buttons */}
+    <div className="min-h-screen flex flex-col bg-background text-text font-mono">
       <Header username={username || "Guest"} />
 
-      <main className="flex flex-col items-center justify-center flex-1 gap-6 p-6">
-        <h1 className="text-5xl font-bold text-center">RapidType</h1>
-        <p className="text-center">
-          <em>A place to test your typing skills against your friends.</em>
+      <main className="flex flex-col items-center justify-center flex-1 gap-8 p-6">
+        <h1 className="text-6xl font-bold text-accent text-center">
+          RapidType
+        </h1>
+        <p className="text-center text-accent/80 text-lg max-w-md">
+          <em>
+            Test your typing speed and accuracy against your friends in
+            real-time.
+          </em>
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-4 mt-6">
+        <div className="flex flex-col sm:flex-row gap-6 mt-8">
           <button
-            className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 cursor-pointer transition"
+            className="bg-accent text-background px-8 py-4 rounded-lg font-semibold text-lg shadow-[0_0_20px_#FFEE63] hover:scale-105 hover:shadow-[0_0_25px_#FFEE63] transition-transform duration-200 cursor-pointer"
             onClick={handleCreateRoom}
           >
             Create Room
           </button>
 
           <button
-            className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 cursor-pointer transition"
+            className="bg-correct text-background px-8 py-4 rounded-lg font-semibold text-lg shadow-[0_0_20px_#E94560] hover:scale-105 hover:shadow-[0_0_25px_#E94560] transition-transform duration-200 cursor-pointer"
             onClick={handleJoinRoom}
           >
             Join Room

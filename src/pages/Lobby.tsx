@@ -99,21 +99,35 @@ export default function Lobby() {
      UI
   ============================ */
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-background text-text">
       {/* Updated header with auth buttons */}
       <Header username={username} />
 
-      <main className="flex flex-col items-center flex-1 gap-6 p-6">
-        <h2 className="text-3xl font-bold">Lobby</h2>
+      <main className="flex flex-col items-center flex-1 gap-8 p-6">
+        <h2 className="text-4xl font-bold text-accent">Lobby</h2>
 
-        <p className="text-gray-600">
-          Room ID: <span className="font-mono">{roomId}</span>
+        <p className="text-accent/80 text-lg flex items-center gap-2">
+          Room ID:
+          <span
+            className="font-mono px-3 py-1 bg-background/70 border border-accent rounded shadow-[0_0_10px_#FFEE63] 
+               hover:shadow-[0_0_20px_#FFEE63] transition-shadow duration-300 cursor-pointer"
+            onClick={() => {
+              navigator.clipboard.writeText(roomId);
+              toast.success("Room ID copied!", { icon: "📋", duration: 1500 });
+            }}
+            title="Click to copy"
+          >
+            {roomId}
+          </span>
         </p>
 
         {/* Players */}
-        <div className="flex flex-col gap-2 w-full max-w-md">
+        <div className="flex flex-col gap-3 w-full max-w-md p-4 rounded-lg bg-background/30 shadow-lg">
           {Object.entries(users).length === 0 && (
-            <p className="text-center text-gray-500">
+            <p
+              className="text-center text-accent/60 px-4 py-2 border border-accent rounded shadow-[0_0_10px_#FFEE63] 
+                  hover:shadow-[0_0_20px_#FFEE63] transition-shadow duration-300"
+            >
               Waiting for players to join...
             </p>
           )}
@@ -132,7 +146,7 @@ export default function Lobby() {
         {isHost && (
           <button
             onClick={handleStartRace}
-            className="mt-6 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition"
+            className="mt-6 bg-accent text-background px-8 py-3 rounded-lg font-semibold text-lg shadow-[0_0_20px_#FFEE63] hover:scale-105 hover:shadow-[0_0_25px_#FFEE63] transition-transform duration-200 cursor-pointer"
           >
             Start Race
           </button>

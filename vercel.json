@@ -9,6 +9,10 @@
   ],
   "routes": [
     {
+      "src": "/auth/(.*)",
+      "dest": "/index.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { socket } from "../socket";
 import { useUser } from "@clerk/clerk-react";
 import Header from "../components/Header";
+import HowToPlay from "../components/HowToPlay";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -55,6 +56,7 @@ export default function Dashboard() {
             real-time.
           </em>
         </p>
+        <HowToPlay />
 
         <div className="flex flex-col sm:flex-row gap-6 mt-8">
           <button

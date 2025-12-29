@@ -34,8 +34,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-  console.log("Clerk Key:", clerkPublishableKey);
-
   return (
     <ClerkProvider publishableKey={clerkPublishableKey}>
       <ClerkLoaded>

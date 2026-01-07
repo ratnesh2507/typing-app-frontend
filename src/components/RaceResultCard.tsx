@@ -6,10 +6,23 @@ interface RaceResultCardProps {
   accuracy: number;
   finished: boolean;
   disqualified: boolean;
-  finishTime?: number | null;
+  finishTime?: string | null; // ⬅️ FIXED
   cheatFlags?: string[];
   onClick?: () => void;
 }
+
+const formatFinishTime = (ts: string) => {
+  const date = new Date(ts);
+  if (isNaN(date.getTime())) return null;
+
+  return date.toLocaleString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    day: "2-digit",
+    month: "short",
+  });
+};
 
 const RaceResultCard: React.FC<RaceResultCardProps> = ({
   raceId,
@@ -33,22 +46,26 @@ const RaceResultCard: React.FC<RaceResultCardProps> = ({
     ? "text-correct"
     : "text-accent/70";
 
+  const formattedFinishTime =
+    finishTime && finished && !disqualified
+      ? formatFinishTime(finishTime)
+      : null;
+
   return (
     <div
       onClick={onClick}
       className="cursor-pointer rounded-xl p-5
-             bg-background/70
-             border border-accent/40
-             shadow-[0_6px_20px_rgba(0,0,0,0.35)]
-             hover:shadow-[0_10px_30px_rgba(255,238,99,0.35)]
-             hover:-translate-y-0.5
-             transition-all duration-300
-             font-mono"
+                 bg-background/70
+                 border border-accent/40
+                 shadow-[0_6px_20px_rgba(0,0,0,0.35)]
+                 hover:shadow-[0_10px_30px_rgba(255,238,99,0.35)]
+                 hover:-translate-y-0.5
+                 transition-all duration-300
+                 font-mono"
     >
       {/* Header */}
       <div className="flex justify-between items-center mb-3">
         <h3 className="text-lg font-bold text-accent">Race #{raceId}</h3>
-
         <span className={`text-sm font-semibold ${statusColor}`}>
           {statusLabel}
         </span>
@@ -64,12 +81,10 @@ const RaceResultCard: React.FC<RaceResultCardProps> = ({
           Accuracy: <span className="font-semibold">{accuracy}%</span>
         </p>
 
-        {finishTime && (
-          <p className="col-span-2">
-            Finish Time:{" "}
-            <span className="font-semibold">
-              {(finishTime / 1000).toFixed(2)}s
-            </span>
+        {formattedFinishTime && (
+          <p className="col-span-2 text-text/80">
+            Finished at:{" "}
+            <span className="font-semibold">{formattedFinishTime}</span>
           </p>
         )}
 

@@ -7,7 +7,7 @@ interface PastRace {
   accuracy: number;
   finished: boolean;
   disqualified: boolean;
-  finishTime?: number | null;
+  finishTime?: string | null;
   cheatFlags?: string[];
 }
 

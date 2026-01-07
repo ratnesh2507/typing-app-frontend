@@ -1,7 +1,6 @@
 import React from "react";
-import RaceResultCard from "./RaceResultCard";
 
-interface PastRace {
+interface RaceResultCardProps {
   raceId: string;
   wpm: number;
   accuracy: number;
@@ -9,50 +8,76 @@ interface PastRace {
   disqualified: boolean;
   finishTime?: number | null;
   cheatFlags?: string[];
+  onClick?: () => void;
 }
 
-interface PastResultsProps {
-  races: PastRace[];
-  onSelectRace?: (raceId: string) => void;
-}
+const RaceResultCard: React.FC<RaceResultCardProps> = ({
+  raceId,
+  wpm,
+  accuracy,
+  finished,
+  disqualified,
+  finishTime,
+  cheatFlags = [],
+  onClick,
+}) => {
+  const statusLabel = disqualified
+    ? "Disqualified"
+    : finished
+    ? "Finished"
+    : "DNF";
 
-const PastResults: React.FC<PastResultsProps> = ({ races, onSelectRace }) => {
+  const statusColor = disqualified
+    ? "text-wrong"
+    : finished
+    ? "text-correct"
+    : "text-accent/70";
+
   return (
-    <section className="w-full max-w-3xl mt-8">
-      <h2 className="text-3xl font-bold font-mono text-accent mb-4">
-        Past Results
-      </h2>
+    <div
+      onClick={onClick}
+      className="cursor-pointer rounded-xl p-5 bg-background/60
+                 border border-accent
+                 shadow-[0_0_12px_#FFEE63]
+                 hover:shadow-[0_0_22px_#FFEE63]
+                 transition-all duration-300 font-mono"
+    >
+      {/* Header */}
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="text-lg font-bold text-accent">Race #{raceId}</h3>
 
-      {/* Empty State */}
-      {races.length === 0 ? (
-        <div
-          className="p-6 text-center rounded-xl border border-accent bg-background/40
-                     shadow-[0_0_12px_#FFEE63]"
-        >
-          <p className="text-accent/80 text-lg">No past races yet 🏁</p>
-          <p className="text-sm text-accent/60 mt-1">
-            Complete a race to see your history here.
+        <span className={`text-sm font-semibold ${statusColor}`}>
+          {statusLabel}
+        </span>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-3 text-sm text-text">
+        <p>
+          WPM: <span className="font-semibold">{wpm}</span>
+        </p>
+
+        <p>
+          Accuracy: <span className="font-semibold">{accuracy}%</span>
+        </p>
+
+        {finishTime && (
+          <p className="col-span-2">
+            Finish Time:{" "}
+            <span className="font-semibold">
+              {(finishTime / 1000).toFixed(2)}s
+            </span>
           </p>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-4 max-h-[60vh] overflow-y-auto pr-1">
-          {races.map((race) => (
-            <RaceResultCard
-              key={race.raceId}
-              raceId={race.raceId}
-              wpm={race.wpm}
-              accuracy={race.accuracy}
-              finished={race.finished}
-              disqualified={race.disqualified}
-              finishTime={race.finishTime}
-              cheatFlags={race.cheatFlags}
-              onClick={() => onSelectRace?.(race.raceId)}
-            />
-          ))}
-        </div>
-      )}
-    </section>
+        )}
+
+        {cheatFlags.length > 0 && (
+          <p className="col-span-2 text-wrong text-xs">
+            ⚠ Flags: {cheatFlags.join(", ")}
+          </p>
+        )}
+      </div>
+    </div>
   );
 };
 
-export default PastResults;
+export default RaceResultCard;

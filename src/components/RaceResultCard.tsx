@@ -36,11 +36,14 @@ const RaceResultCard: React.FC<RaceResultCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className="cursor-pointer rounded-xl p-5 bg-background/60
-                 border border-accent
-                 shadow-[0_0_12px_#FFEE63]
-                 hover:shadow-[0_0_22px_#FFEE63]
-                 transition-all duration-300 font-mono"
+      className="cursor-pointer rounded-xl p-5
+             bg-background/70
+             border border-accent/40
+             shadow-[0_6px_20px_rgba(0,0,0,0.35)]
+             hover:shadow-[0_10px_30px_rgba(255,238,99,0.35)]
+             hover:-translate-y-0.5
+             transition-all duration-300
+             font-mono"
     >
       {/* Header */}
       <div className="flex justify-between items-center mb-3">

@@ -3,12 +3,12 @@ import RaceResultCard from "./RaceResultCard";
 
 interface PastRace {
   raceId: string;
-  date: string;
-  totalPlayers: number;
-  finishedPlayers: number;
-  avgWpm: number;
-  fastestUser: string;
-  fastestWpm: number;
+  wpm: number;
+  accuracy: number;
+  finished: boolean;
+  disqualified: boolean;
+  finishTime?: number | null;
+  cheatFlags?: string[];
 }
 
 interface PastResultsProps {
@@ -40,12 +40,12 @@ const PastResults: React.FC<PastResultsProps> = ({ races, onSelectRace }) => {
             <RaceResultCard
               key={race.raceId}
               raceId={race.raceId}
-              date={race.date}
-              totalPlayers={race.totalPlayers}
-              finishedPlayers={race.finishedPlayers}
-              avgWpm={race.avgWpm}
-              fastestUser={race.fastestUser}
-              fastestWpm={race.fastestWpm}
+              wpm={race.wpm}
+              accuracy={race.accuracy}
+              finished={race.finished}
+              disqualified={race.disqualified}
+              finishTime={race.finishTime}
+              cheatFlags={race.cheatFlags}
               onClick={() => onSelectRace?.(race.raceId)}
             />
           ))}

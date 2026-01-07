@@ -2,26 +2,35 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { socket } from "../socket";
 import { useUser } from "@clerk/clerk-react";
+
 import Header from "../components/Header";
 import HowToPlay from "../components/HowToPlay";
+import StatsHeader from "../components/StatsHeader";
+import PastResults from "../components/PastResults";
+
+const API_BASE = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useUser();
-  const [username, setUsername] = useState("");
 
+  const [username, setUsername] = useState("");
+  const [stats, setStats] = useState<any>(null);
+  const [pastRaces, setPastRaces] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  /* ---------------- USERNAME ---------------- */
   useEffect(() => {
     if (user?.firstName) setUsername(user.firstName);
     else if (user?.username) setUsername(user.username);
   }, [user]);
 
+  /* ---------------- SOCKET ACTIONS ---------------- */
   const handleCreateRoom = () => {
     if (!username.trim()) return alert("Username not available");
 
     socket.once("room-created", ({ roomId }) => {
-      navigate("/lobby", {
-        state: { roomId, username, isHost: true },
-      });
+      navigate("/lobby", { state: { roomId, username, isHost: true } });
     });
 
     socket.emit("create-room", { username });
@@ -34,45 +43,130 @@ export default function Dashboard() {
     if (!roomId) return;
 
     socket.once("join-confirmed", () => {
-      navigate("/lobby", {
-        state: { roomId, username, isHost: false },
-      });
+      navigate("/lobby", { state: { roomId, username, isHost: false } });
     });
 
     socket.emit("join-room", { roomId, username });
   };
 
+  /* ---------------- FETCH DASHBOARD DATA ---------------- */
+  useEffect(() => {
+    if (!username) return;
+
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+
+        /* ---- Fetch user race history ---- */
+        const raceRes = await fetch(
+          `${API_BASE}/users/${username}/races?limit=20`
+        );
+
+        const races = await raceRes.json();
+
+        /* ---- Compute stats ---- */
+        const finishedRaces = races.filter(
+          (r: any) => r.finished && !r.disqualified
+        );
+
+        const bestWpm = finishedRaces.reduce(
+          (max: number, r: any) => Math.max(max, r.wpm),
+          0
+        );
+
+        const avgWpm =
+          finishedRaces.length > 0
+            ? finishedRaces.reduce((sum: number, r: any) => sum + r.wpm, 0) /
+              finishedRaces.length
+            : 0;
+
+        const avgAccuracy =
+          finishedRaces.length > 0
+            ? finishedRaces.reduce(
+                (sum: number, r: any) => sum + r.accuracy,
+                0
+              ) / finishedRaces.length
+            : 0;
+
+        setStats({
+          totalRaces: races.length,
+          finishedRaces: finishedRaces.length,
+          bestWpm,
+          avgWpm,
+          avgAccuracy,
+        });
+
+        /* ---- Format past results ---- */
+        setPastRaces(
+          races.slice(0, 5).map((r: any) => ({
+            raceId: r.race_id,
+            wpm: r.wpm,
+            accuracy: r.accuracy,
+            finished: r.finished,
+            disqualified: r.disqualified,
+            finishTime: r.finish_time,
+            cheatFlags: r.cheat_flags,
+          }))
+        );
+      } catch (err) {
+        console.error("Dashboard fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [username]);
+
+  /* ---------------- UI ---------------- */
   return (
     <div className="min-h-screen flex flex-col bg-background text-text font-mono">
       <Header username={username || "Guest"} />
 
-      <main className="flex flex-col items-center justify-center flex-1 gap-8 p-6">
-        <h1 className="text-6xl font-bold text-accent text-center">
-          RapidType
-        </h1>
-        <p className="text-center text-accent/80 text-lg max-w-md">
-          <em>
-            Test your typing speed and accuracy against your friends in
-            real-time.
-          </em>
-        </p>
+      <main className="flex flex-col items-center flex-1 gap-10 p-6">
+        {/* Hero */}
+        <section className="flex flex-col items-center gap-4 mt-6">
+          <h1 className="text-6xl font-bold text-accent text-center">
+            RapidType
+          </h1>
+
+          <p className="text-center text-accent/80 text-lg max-w-md">
+            <em>
+              Test your typing speed and accuracy against your friends in
+              real-time.
+            </em>
+          </p>
+        </section>
+
         <HowToPlay />
 
-        <div className="flex flex-col sm:flex-row gap-6 mt-8">
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row gap-6 mt-4">
           <button
-            className="bg-accent text-background px-8 py-4 rounded-lg font-semibold text-lg shadow-[0_0_20px_#FFEE63] hover:scale-105 hover:shadow-[0_0_25px_#FFEE63] transition-transform duration-200 cursor-pointer"
+            className="bg-accent text-background px-8 py-4 rounded-lg font-semibold text-lg
+                       shadow-[0_0_20px_#FFEE63] hover:scale-105 transition-all"
             onClick={handleCreateRoom}
           >
             Create Room
           </button>
 
           <button
-            className="bg-correct text-background px-8 py-4 rounded-lg font-semibold text-lg shadow-[0_0_20px_#E94560] hover:scale-105 hover:shadow-[0_0_25px_#E94560] transition-transform duration-200 cursor-pointer"
+            className="bg-correct text-background px-8 py-4 rounded-lg font-semibold text-lg
+                       shadow-[0_0_20px_#E94560] hover:scale-105 transition-all"
             onClick={handleJoinRoom}
           >
             Join Room
           </button>
         </div>
+
+        {!loading && stats && <StatsHeader {...stats} />}
+
+        {!loading && (
+          <PastResults
+            races={pastRaces}
+            onSelectRace={(raceId) => navigate(`/results/${raceId}`)}
+          />
+        )}
       </main>
     </div>
   );

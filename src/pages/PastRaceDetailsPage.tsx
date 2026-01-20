@@ -57,7 +57,10 @@ export default function PastRaceDetailsPage() {
     async function fetchRaceDetails() {
       try {
         setLoading(true);
-        const res = await fetch(`/races/${raceId}/details`);
+        const API_BASE =
+          import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+        const res = await fetch(`${API_BASE}/races/${raceId}/details`);
+
         if (!res.ok) throw new Error("Failed to fetch race details");
         const json = await res.json();
         setData(json);
@@ -96,10 +99,7 @@ export default function PastRaceDetailsPage() {
 
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-6">
-      <Link
-        to="/dashboard"
-        className="text-sm text-muted-foreground hover:underline"
-      >
+      <Link to="/" className="text-sm text-muted-foreground hover:underline">
         ← Back to Dashboard
       </Link>
 

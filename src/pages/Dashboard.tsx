@@ -21,8 +21,8 @@ export default function Dashboard() {
 
   /* ---------------- USERNAME ---------------- */
   useEffect(() => {
-    if (user?.firstName) setUsername(user.firstName);
-    else if (user?.username) setUsername(user.username);
+    if (user?.username) setUsername(user.username);
+    else if (user?.firstName) setUsername(user.firstName);
   }, [user]);
 
   /* ---------------- SOCKET ACTIONS ---------------- */
@@ -53,39 +53,29 @@ export default function Dashboard() {
   useEffect(() => {
     if (!username) return;
 
-    const fetchDashboardData = async () => {
+    async function fetchDashboardData() {
       try {
         setLoading(true);
 
-        /* ---- Fetch user race history ---- */
-        const raceRes = await fetch(
-          `${API_BASE}/users/${username}/races?limit=20`,
-        );
+        const res = await fetch(`${API_BASE}/users/${username}/races?limit=20`);
+        const races = await res.json();
 
-        const races = await raceRes.json();
-
-        /* ---- Compute stats ---- */
         const finishedRaces = races.filter(
           (r: any) => r.finished && !r.disqualified,
         );
 
-        const bestWpm = finishedRaces.reduce(
-          (max: number, r: any) => Math.max(max, r.wpm),
-          0,
-        );
+        const bestWpm = Math.max(...finishedRaces.map((r: any) => r.wpm), 0);
 
         const avgWpm =
           finishedRaces.length > 0
-            ? finishedRaces.reduce((sum: number, r: any) => sum + r.wpm, 0) /
+            ? finishedRaces.reduce((s: number, r: any) => s + r.wpm, 0) /
               finishedRaces.length
             : 0;
 
         const avgAccuracy =
           finishedRaces.length > 0
-            ? finishedRaces.reduce(
-                (sum: number, r: any) => sum + r.accuracy,
-                0,
-              ) / finishedRaces.length
+            ? finishedRaces.reduce((s: number, r: any) => s + r.accuracy, 0) /
+              finishedRaces.length
             : 0;
 
         setStats({
@@ -96,7 +86,6 @@ export default function Dashboard() {
           avgAccuracy,
         });
 
-        /* ---- Format past results ---- */
         setPastRaces(
           races.slice(0, 5).map((r: any) => ({
             raceId: r.race_id,
@@ -113,7 +102,7 @@ export default function Dashboard() {
       } finally {
         setLoading(false);
       }
-    };
+    }
 
     fetchDashboardData();
   }, [username]);
@@ -124,35 +113,27 @@ export default function Dashboard() {
       <Header username={username || "Guest"} />
 
       <main className="flex flex-col items-center flex-1 gap-10 p-6">
-        {/* Hero */}
         <section className="flex flex-col items-center gap-4 mt-6">
-          <h1 className="text-6xl font-bold text-accent text-center">
-            RapidType
-          </h1>
-
-          <p className="text-center text-accent/80 text-lg max-w-md">
-            <em>
-              Test your typing speed and accuracy against your friends in
-              real-time.
-            </em>
+          <h1 className="text-6xl font-bold text-accent">RapidType</h1>
+          <p className="text-accent/80 text-lg text-center max-w-md">
+            <em>Test your typing speed and accuracy against friends.</em>
           </p>
         </section>
 
         <HowToPlay />
 
-        {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-6 mt-4">
+        <div className="flex flex-col sm:flex-row gap-6">
           <button
-            className="bg-accent text-background px-8 py-4 rounded-lg font-semibold text-lg
-                       shadow-[0_0_20px_#FFEE63] hover:scale-105 hover:cursor-pointer transition-all"
+            className="bg-accent text-background px-8 py-4 rounded-lg font-semibold
+                       shadow-[0_0_20px_#FFEE63] hover:scale-105 transition-all"
             onClick={handleCreateRoom}
           >
             Create Room
           </button>
 
           <button
-            className="bg-correct text-background px-8 py-4 rounded-lg font-semibold text-lg
-                       shadow-[0_0_20px_#E94560] hover:scale-105 hover:cursor-pointer transition-all"
+            className="bg-correct text-background px-8 py-4 rounded-lg font-semibold
+                       shadow-[0_0_20px_#E94560] hover:scale-105 transition-all"
             onClick={handleJoinRoom}
           >
             Join Room
@@ -164,7 +145,7 @@ export default function Dashboard() {
         {!loading && (
           <PastResults
             races={pastRaces}
-            onSelectRace={(raceId) => navigate(`/results/${raceId}`)}
+            onSelectRace={(raceId) => navigate(`/races/${raceId}`)}
           />
         )}
       </main>

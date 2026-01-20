@@ -17,6 +17,7 @@ import Lobby from "./pages/Lobby";
 import Race from "./pages/Race";
 import Results from "./pages/Results";
 import Auth from "./pages/Auth";
+import PastRaceDetailsPage from "./pages/PastRaceDetailsPage";
 
 const clerkPublishableKey = import.meta.env
   .VITE_CLERK_PUBLISHABLE_KEY as string;
@@ -75,6 +76,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Race />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/races/:raceId"
+              element={
+                <ProtectedRoute>
+                  <PastRaceDetailsPage />
                 </ProtectedRoute>
               }
             />

@@ -1,7 +1,6 @@
-import React from "react";
 import RaceResultCard from "./RaceResultCard";
 
-interface PastRace {
+export interface PastRace {
   raceId: string;
   wpm: number;
   accuracy: number;
@@ -16,36 +15,24 @@ interface PastResultsProps {
   onSelectRace?: (raceId: string) => void;
 }
 
-const PastResults: React.FC<PastResultsProps> = ({ races, onSelectRace }) => {
+export default function PastResults({ races, onSelectRace }: PastResultsProps) {
   return (
     <section className="w-full max-w-3xl mt-8">
-      <h2 className="text-3xl font-bold font-mono text-accent mb-4">
-        Past Results
-      </h2>
+      <h2 className="text-3xl font-bold text-accent mb-4">Past Results</h2>
 
-      {/* Empty State */}
       {races.length === 0 ? (
-        <div
-          className="p-6 text-center rounded-xl border border-accent bg-background/40
-                     shadow-[0_0_12px_#FFEE63]"
-        >
+        <div className="p-6 text-center rounded-xl border border-accent/40 bg-background/40">
           <p className="text-accent/80 text-lg">No past races yet 🏁</p>
           <p className="text-sm text-accent/60 mt-1">
             Complete a race to see your history here.
           </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-4 max-h-[60vh] overflow-y-auto pr-1">
+        <div className="flex flex-col gap-4 max-h-[60vh] overflow-y-auto">
           {races.map((race) => (
             <RaceResultCard
               key={race.raceId}
-              raceId={race.raceId}
-              wpm={race.wpm}
-              accuracy={race.accuracy}
-              finished={race.finished}
-              disqualified={race.disqualified}
-              finishTime={race.finishTime}
-              cheatFlags={race.cheatFlags}
+              {...race}
               onClick={() => onSelectRace?.(race.raceId)}
             />
           ))}
@@ -53,6 +40,4 @@ const PastResults: React.FC<PastResultsProps> = ({ races, onSelectRace }) => {
       )}
     </section>
   );
-};
-
-export default PastResults;
+}

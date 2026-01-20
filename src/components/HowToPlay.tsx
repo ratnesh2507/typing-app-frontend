@@ -26,7 +26,7 @@ export default function HowToPlay() {
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="px-4 py-2 bg-[#FFEE63] text-[#1A1A2E] font-mono font-bold rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
+        className="px-4 py-2 bg-[#FFEE63] text-[#1A1A2E] font-mono font-bold rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all hover:cursor-pointer duration-200"
       >
         🎮 How To Play
       </button>

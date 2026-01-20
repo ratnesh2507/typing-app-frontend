@@ -59,19 +59,19 @@ export default function Dashboard() {
 
         /* ---- Fetch user race history ---- */
         const raceRes = await fetch(
-          `${API_BASE}/users/${username}/races?limit=20`
+          `${API_BASE}/users/${username}/races?limit=20`,
         );
 
         const races = await raceRes.json();
 
         /* ---- Compute stats ---- */
         const finishedRaces = races.filter(
-          (r: any) => r.finished && !r.disqualified
+          (r: any) => r.finished && !r.disqualified,
         );
 
         const bestWpm = finishedRaces.reduce(
           (max: number, r: any) => Math.max(max, r.wpm),
-          0
+          0,
         );
 
         const avgWpm =
@@ -84,7 +84,7 @@ export default function Dashboard() {
           finishedRaces.length > 0
             ? finishedRaces.reduce(
                 (sum: number, r: any) => sum + r.accuracy,
-                0
+                0,
               ) / finishedRaces.length
             : 0;
 
@@ -106,7 +106,7 @@ export default function Dashboard() {
             disqualified: r.disqualified,
             finishTime: r.finish_time,
             cheatFlags: r.cheat_flags,
-          }))
+          })),
         );
       } catch (err) {
         console.error("Dashboard fetch error:", err);
@@ -144,7 +144,7 @@ export default function Dashboard() {
         <div className="flex flex-col sm:flex-row gap-6 mt-4">
           <button
             className="bg-accent text-background px-8 py-4 rounded-lg font-semibold text-lg
-                       shadow-[0_0_20px_#FFEE63] hover:scale-105 transition-all"
+                       shadow-[0_0_20px_#FFEE63] hover:scale-105 hover:cursor-pointer transition-all"
             onClick={handleCreateRoom}
           >
             Create Room
@@ -152,7 +152,7 @@ export default function Dashboard() {
 
           <button
             className="bg-correct text-background px-8 py-4 rounded-lg font-semibold text-lg
-                       shadow-[0_0_20px_#E94560] hover:scale-105 transition-all"
+                       shadow-[0_0_20px_#E94560] hover:scale-105 hover:cursor-pointer transition-all"
             onClick={handleJoinRoom}
           >
             Join Room

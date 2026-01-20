@@ -106,7 +106,7 @@ export default function Race() {
               accuracy,
             },
           }
-        : prev
+        : prev,
     );
   });
 

@@ -56,13 +56,13 @@ export default function Results() {
         .sort((a, b) => b.wpm - a.wpm)
         .slice(0, 3)
         .map((u) => ({ username: u.username, wpm: u.wpm })),
-    [userList]
+    [userList],
   );
 
   /* -------------------- SORTED PLAYERS -------------------- */
   const sortedPlayers = useMemo(
     () => [...userList].sort((a, b) => b.wpm - a.wpm),
-    [userList]
+    [userList],
   );
 
   /* -------------------- CONFETTI -------------------- */

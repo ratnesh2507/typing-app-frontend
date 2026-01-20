@@ -37,14 +37,14 @@ const RaceResultCard: React.FC<RaceResultCardProps> = ({
   const statusLabel = disqualified
     ? "Disqualified"
     : finished
-    ? "Finished"
-    : "DNF";
+      ? "Finished"
+      : "DNF";
 
   const statusColor = disqualified
     ? "text-wrong"
     : finished
-    ? "text-correct"
-    : "text-accent/70";
+      ? "text-correct"
+      : "text-accent/70";
 
   const formattedFinishTime =
     finishTime && finished && !disqualified

@@ -12,52 +12,69 @@ const API_BASE = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
 
+  const [clerkId, setClerkId] = useState<string | null>(null);
   const [username, setUsername] = useState("");
   const [stats, setStats] = useState<any>(null);
   const [pastRaces, setPastRaces] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  /* ---------------- USERNAME ---------------- */
+  /* ---------------- USER ID + DISPLAY NAME ---------------- */
   useEffect(() => {
-    if (user?.username) setUsername(user.username);
-    else if (user?.firstName) setUsername(user.firstName);
-  }, [user]);
+    if (!isLoaded || !user) return;
+
+    setClerkId(user.id);
+
+    if (user.username) setUsername(user.username);
+    else if (user.firstName) setUsername(user.firstName);
+    else setUsername("Player");
+  }, [isLoaded, user]);
 
   /* ---------------- SOCKET ACTIONS ---------------- */
   const handleCreateRoom = () => {
-    if (!username.trim()) return alert("Username not available");
+    if (!clerkId) return alert("User not authenticated");
 
     socket.once("room-created", ({ roomId }) => {
-      navigate("/lobby", { state: { roomId, username, isHost: true } });
+      navigate("/lobby", {
+        state: { roomId, username, isHost: true },
+      });
     });
 
-    socket.emit("create-room", { username });
+    socket.emit("create-room", {
+      clerkId,
+      username,
+    });
   };
 
   const handleJoinRoom = () => {
-    if (!username.trim()) return alert("Username not available");
+    if (!clerkId) return alert("User not authenticated");
 
     const roomId = prompt("Enter Room ID");
     if (!roomId) return;
 
     socket.once("join-confirmed", () => {
-      navigate("/lobby", { state: { roomId, username, isHost: false } });
+      navigate("/lobby", {
+        state: { roomId, username, isHost: false },
+      });
     });
 
-    socket.emit("join-room", { roomId, username });
+    socket.emit("join-room", {
+      roomId,
+      clerkId,
+      username,
+    });
   };
 
   /* ---------------- FETCH DASHBOARD DATA ---------------- */
   useEffect(() => {
-    if (!username) return;
+    if (!clerkId) return;
 
     async function fetchDashboardData() {
       try {
         setLoading(true);
 
-        const res = await fetch(`${API_BASE}/users/${username}/races?limit=20`);
+        const res = await fetch(`${API_BASE}/users/${clerkId}/races?limit=20`);
         const races = await res.json();
 
         const finishedRaces = races.filter(
@@ -105,12 +122,12 @@ export default function Dashboard() {
     }
 
     fetchDashboardData();
-  }, [username]);
+  }, [clerkId]);
 
   /* ---------------- UI ---------------- */
   return (
     <div className="min-h-screen flex flex-col bg-background text-text font-mono">
-      <Header username={username || "Guest"} />
+      <Header username={username} />
 
       <main className="flex flex-col items-center flex-1 gap-10 p-6">
         <section className="flex flex-col items-center gap-4 mt-6">

@@ -44,24 +44,27 @@ function getDuration(start: string, end: string) {
 
 export default function PastRaceDetailsPage() {
   const { raceId } = useParams<{ raceId: string }>();
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
 
   const [data, setData] = useState<RaceDetailsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const currentUserId =
-    user?.username || user?.emailAddresses[0]?.emailAddress || user?.id;
+  // ✅ SINGLE SOURCE OF TRUTH
+  const currentUserClerkId = user?.id;
 
   useEffect(() => {
+    if (!raceId) return;
+
     async function fetchRaceDetails() {
       try {
         setLoading(true);
         const API_BASE =
           import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
-        const res = await fetch(`${API_BASE}/races/${raceId}/details`);
 
+        const res = await fetch(`${API_BASE}/races/${raceId}/details`);
         if (!res.ok) throw new Error("Failed to fetch race details");
+
         const json = await res.json();
         setData(json);
       } catch (err: any) {
@@ -75,11 +78,14 @@ export default function PastRaceDetailsPage() {
   }, [raceId]);
 
   const userParticipant = useMemo(() => {
-    if (!data || !currentUserId) return null;
-    return data.participants.find((p) => p.user_id === currentUserId) ?? null;
-  }, [data, currentUserId]);
+    if (!data || !currentUserClerkId) return null;
 
-  if (loading) {
+    return (
+      data.participants.find((p) => p.clerk_id === currentUserClerkId) ?? null
+    );
+  }, [data, currentUserClerkId]);
+
+  if (!isLoaded || loading) {
     return (
       <div className="p-6 text-center text-muted-foreground">
         Loading race details...
@@ -119,7 +125,7 @@ export default function PastRaceDetailsPage() {
       {/* Leaderboard */}
       <PastRaceLeaderboard
         participants={participants}
-        currentUserId={currentUserId}
+        currentUserClerkId={currentUserClerkId}
       />
     </div>
   );

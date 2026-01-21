@@ -13,7 +13,8 @@ import {
 } from "@clerk/clerk-react";
 
 interface User {
-  username: string;
+  clerkId?: string; // ✅ identity
+  username: string; // UI only
   progress: number;
   wpm: number;
   accuracy: number;
@@ -22,15 +23,18 @@ interface User {
   dqReason?: string;
 }
 
+interface ResultsState {
+  roomId: string;
+  users: Record<string, User>;
+  clerkId?: string;
+}
+
 export default function Results() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useUser();
 
-  const state = location.state as {
-    roomId: string;
-    users: Record<string, User>;
-  } | null;
+  const state = location.state as ResultsState | null;
 
   const [showConfetti, setShowConfetti] = useState(false);
   const [dimensions, setDimensions] = useState({
@@ -38,34 +42,50 @@ export default function Results() {
     height: window.innerHeight,
   });
 
-  /* -------------------- GUARD -------------------- */
+  /* =========================
+     GUARD
+  ========================= */
   useEffect(() => {
     if (!state) navigate("/", { replace: true });
   }, [state, navigate]);
 
   if (!state) return null;
 
-  const currentUsername = user?.firstName || user?.username || "Guest";
+  /* =========================
+     USER IDENTITY
+  ========================= */
+  const currentClerkId = state.clerkId || user?.id;
+  const currentUsername = user?.username || user?.firstName || "Guest";
+
   const userList = Object.values(state.users);
 
-  /* -------------------- PODIUM DATA -------------------- */
+  /* =========================
+     PODIUM DATA
+  ========================= */
   const podiumWinners = useMemo(
     () =>
       [...userList]
         .filter((u) => !u.disqualified)
         .sort((a, b) => b.wpm - a.wpm)
         .slice(0, 3)
-        .map((u) => ({ username: u.username, wpm: u.wpm })),
+        .map((u) => ({
+          username: u.username,
+          wpm: u.wpm,
+        })),
     [userList],
   );
 
-  /* -------------------- SORTED PLAYERS -------------------- */
+  /* =========================
+     SORTED PLAYERS
+  ========================= */
   const sortedPlayers = useMemo(
     () => [...userList].sort((a, b) => b.wpm - a.wpm),
     [userList],
   );
 
-  /* -------------------- CONFETTI -------------------- */
+  /* =========================
+     CONFETTI
+  ========================= */
   useEffect(() => {
     if (podiumWinners.length > 0) {
       setShowConfetti(true);
@@ -74,14 +94,23 @@ export default function Results() {
     }
   }, [podiumWinners]);
 
-  /* -------------------- WINDOW RESIZE -------------------- */
+  /* =========================
+     WINDOW RESIZE
+  ========================= */
   useEffect(() => {
     const handleResize = () =>
-      setDimensions({ width: window.innerWidth, height: window.innerHeight });
+      setDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  /* =========================
+     UI
+  ========================= */
   return (
     <>
       <SignedIn>
@@ -120,16 +149,17 @@ export default function Results() {
 
             {/* Two-column layout */}
             <div className="w-full flex gap-4 mt-6 justify-center">
-              {/* Left Column - Race Summary */}
+              {/* Left Column */}
               <div className="w-full max-w-sm shrink-0">
                 <RaceSummaryCard users={userList} />
               </div>
 
-              {/* Right Column - Players List */}
+              {/* Right Column */}
               <div className="w-full max-w-md flex flex-col gap-3 max-h-[70vh] overflow-y-auto">
                 <h2 className="text-4xl font-bold font-mono tracking-wide">
                   Players List
                 </h2>
+
                 {sortedPlayers.map((player, index) => (
                   <PlayerCard
                     key={index}
@@ -139,7 +169,11 @@ export default function Results() {
                     accuracy={player.accuracy}
                     disqualified={player.disqualified}
                     dqReason={player.dqReason}
-                    highlight={player.username === currentUsername}
+                    highlight={
+                      player.clerkId
+                        ? player.clerkId === currentClerkId
+                        : player.username === currentUsername
+                    }
                   />
                 ))}
               </div>

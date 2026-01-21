@@ -27,6 +27,7 @@ interface User {
 
 interface RaceState {
   roomId: string;
+  clerkId?: string; // passed from Lobby
 }
 
 export default function Race() {
@@ -37,26 +38,35 @@ export default function Race() {
   const state = location.state as RaceState | null;
   const roomId = state?.roomId;
 
-  /* -------------------- SAFETY GUARD -------------------- */
+  /* =======================
+     SAFETY GUARD
+  ======================= */
   useEffect(() => {
     if (!roomId) navigate("/", { replace: true });
   }, [roomId, navigate]);
 
-  const username = user?.firstName || user?.username || "Guest";
+  /* =======================
+     USER IDENTITY
+  ======================= */
+  const clerkId = state?.clerkId || user?.id;
+  const displayName = user?.username || user?.firstName || "Guest";
 
-  /* -------------------- STATE -------------------- */
+  /* =======================
+     STATE
+  ======================= */
   const [text, setText] = useState("");
   const [typed, setTyped] = useState("");
   const [correctChars, setCorrectChars] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [users, setUsers] = useState<Record<string, User>>({});
   const [disqualified, setDisqualified] = useState(false);
-  // const [finished, setFinished] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  /* -------------------- SYNC RACE ON LOAD -------------------- */
+  /* =======================
+     SYNC RACE ON LOAD
+  ======================= */
   useEffect(() => {
     if (!roomId) return;
     socket.emit("sync-race-state", { roomId });
@@ -68,7 +78,12 @@ export default function Race() {
 
     if (status === "finished" && results) {
       navigate("/results", {
-        state: { roomId, users: results, username },
+        state: {
+          roomId,
+          users: results,
+          username: displayName,
+          clerkId,
+        },
       });
       return;
     }
@@ -78,10 +93,12 @@ export default function Race() {
     }
   });
 
-  /* -------------------- TIMER -------------------- */
+  /* =======================
+     TIMER
+  ======================= */
   useEffect(() => {
     if (!startTime || disqualified) return;
-    if (timerRef.current) return; // prevent multiple intervals
+    if (timerRef.current) return;
 
     timerRef.current = setInterval(() => {
       setElapsedTime(Math.floor((Date.now() - startTime) / 1000));
@@ -93,7 +110,9 @@ export default function Race() {
     };
   }, [startTime, disqualified]);
 
-  /* -------------------- SOCKET EVENTS -------------------- */
+  /* =======================
+     SOCKET EVENTS
+  ======================= */
   useSocket("progress-update", ({ socketId, progress, wpm, accuracy }) => {
     setUsers((prev) =>
       prev[socketId]
@@ -129,11 +148,18 @@ export default function Race() {
 
   useSocket("race-ended", ({ results }) => {
     navigate("/results", {
-      state: { roomId, users: results, username },
+      state: {
+        roomId,
+        users: results,
+        username: displayName,
+        clerkId,
+      },
     });
   });
 
-  /* -------------------- TYPING -------------------- */
+  /* =======================
+     TYPING
+  ======================= */
   const handleTyping = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (disqualified) return;
 
@@ -150,38 +176,36 @@ export default function Race() {
     socket.emit("typing-progress", {
       roomId,
       typedText: value,
+      clerkId, // ✅ identity
+      username: displayName, // UI only
     });
-
-    // // Finish detection
-    // if (!finished && correct === text.length) {
-    //   setFinished(true);
-
-    //   socket.emit("user-finished", {
-    //     roomId,
-    //     wpm: calculateWPM(correct, elapsedTime),
-    //     accuracy: calculateAccuracy(correct, value.length),
-    //   });
-    // }
   };
 
-  /* -------------------- STATS -------------------- */
+  /* =======================
+     STATS
+  ======================= */
   const stats = useMemo(() => {
     const progress = text.length
       ? Math.min(100, Math.round((correctChars / text.length) * 100))
       : 0;
+
     const accuracy = typed.length
       ? Math.round((correctChars / typed.length) * 100)
       : 100;
+
     const wpm = elapsedTime > 0 ? calculateWPM(correctChars, elapsedTime) : 0;
+
     return { progress, accuracy, wpm };
   }, [correctChars, typed.length, text.length, elapsedTime]);
 
-  /* -------------------- UI -------------------- */
+  /* =======================
+     UI
+  ======================= */
   return (
     <>
       <SignedIn>
         <div className="min-h-screen flex flex-col bg-background text-text">
-          <Header username={username} />
+          <Header username={displayName} />
 
           <main className="flex flex-col items-center flex-1 p-6 gap-4">
             <h2 className="text-3xl font-bold">Race</h2>
@@ -195,9 +219,9 @@ export default function Race() {
                   const color =
                     idx < typed.length
                       ? typedChar === char
-                        ? "#E94560" // correct
-                        : "#00D1FF" // incorrect
-                      : "#6B728E"; // default gray
+                        ? "#E94560"
+                        : "#00D1FF"
+                      : "#6B728E";
                   return (
                     <span key={idx} style={{ color }}>
                       {char}

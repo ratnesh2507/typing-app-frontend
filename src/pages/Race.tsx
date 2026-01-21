@@ -227,6 +227,14 @@ export default function Race() {
               </div>
             ) : (
               <div className="w-full max-w-3xl p-4 border border-accent rounded bg-background">
+                {/* Instruction for colors */}
+                <div className="mb-3 p-2 rounded-lg bg-background/50 border border-accent flex justify-center gap-2 text-sm text-text/80">
+                  <span className="font-semibold text-correct">Red</span> =
+                  correct
+                  <span className="font-semibold text-incorrect">Blue</span> =
+                  incorrect
+                </div>
+
                 {/* Typing Text */}
                 <p className="mb-3 leading-relaxed text-lg">
                   {text.split("").map((char, idx) => {

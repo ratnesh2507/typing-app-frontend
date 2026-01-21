@@ -24,11 +24,31 @@ export default function Dashboard() {
   useEffect(() => {
     if (!isLoaded || !user) return;
 
-    setClerkId(user.id);
+    const id = user.id;
+    const name = user.username || user.firstName || user.id;
 
-    if (user.username) setUsername(user.username);
-    else if (user.firstName) setUsername(user.firstName);
-    else setUsername(user.id);
+    setClerkId(id);
+    setUsername(name);
+
+    // ---------------- SYNC USER TO BACKEND ----------------
+    const syncUser = async () => {
+      try {
+        await fetch(`${API_BASE}/users/sync`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            clerkId: id,
+            username: name,
+            email: user.emailAddresses?.[0]?.emailAddress || null,
+          }),
+        });
+        console.log("[Dashboard] User synced to backend");
+      } catch (err) {
+        console.error("[Dashboard] Failed to sync user:", err);
+      }
+    };
+
+    syncUser();
   }, [isLoaded, user]);
 
   /* ---------------- SOCKET ACTIONS ---------------- */

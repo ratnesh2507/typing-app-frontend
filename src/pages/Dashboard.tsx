@@ -26,11 +26,9 @@ export default function Dashboard() {
 
     setClerkId(user.id);
 
-    if (user.username) {
-      setUsername(user.username);
-    } else {
-      setUsername(user.id); // deterministic fallback
-    }
+    if (user.username) setUsername(user.username);
+    else if (user.firstName) setUsername(user.firstName);
+    else setUsername(user.id);
   }, [isLoaded, user]);
 
   /* ---------------- SOCKET ACTIONS ---------------- */

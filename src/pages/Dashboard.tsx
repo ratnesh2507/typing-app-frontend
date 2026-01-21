@@ -7,6 +7,7 @@ import Header from "../components/Header";
 import HowToPlay from "../components/HowToPlay";
 import StatsHeader from "../components/StatsHeader";
 import PastResults from "../components/PastResults";
+import ReleaseNotesModal from "../components/ReleaseNotesModal";
 
 const API_BASE = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
@@ -164,6 +165,9 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen flex flex-col bg-background text-text font-mono">
       <Header username={username} />
+
+      {/* Release Notes Modal */}
+      <ReleaseNotesModal version="1.1.0" />
 
       <main className="flex flex-col items-center flex-1 gap-10 p-6">
         <section className="flex flex-col items-center gap-4 mt-6">

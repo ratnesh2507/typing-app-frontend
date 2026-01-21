@@ -22,12 +22,14 @@ const PastRaceLeaderboard: React.FC<PastRaceLeaderboardProps> = ({
 
       <div className="divide-y divide-accent/30">
         {participants.map((p, idx) => {
-          const isYou = p.clerk_id === currentUserClerkId;
+          const participantId = p.clerk_id ?? p.username;
+          const isYou =
+            !!currentUserClerkId && p.clerk_id === currentUserClerkId;
           const isTopThree = idx < 3;
 
           return (
             <div
-              key={p.clerk_id}
+              key={participantId}
               className={`p-4 flex items-center justify-between font-mono transition-all hover:bg-accent/10 ${
                 isYou ? "bg-accent/20 border-l-4 border-accent" : ""
               }`}
@@ -46,11 +48,13 @@ const PastRaceLeaderboard: React.FC<PastRaceLeaderboardProps> = ({
                         ? "🥉"
                         : idx + 1}
                 </div>
+
                 <div>
                   <div className="font-semibold text-accent">
-                    {p.username}{" "}
-                    {isYou && <span className="text-correct">(You)</span>}
+                    {p.username}
+                    {isYou && <span className="ml-1 text-correct">(You)</span>}
                   </div>
+
                   <div className="text-xs text-text">
                     {p.disqualified ? (
                       <span className="text-incorrect">❌ Disqualified</span>
@@ -63,11 +67,12 @@ const PastRaceLeaderboard: React.FC<PastRaceLeaderboardProps> = ({
 
               <div className="flex gap-6 text-sm font-semibold">
                 <div className="text-accent">
-                  {p.wpm} <span className="text-text text-xs">WPM</span>
+                  {p.wpm}
+                  <span className="ml-1 text-text text-xs">WPM</span>
                 </div>
                 <div className="text-accent">
                   {p.accuracy}
-                  <span className="text-text text-xs">% Accuracy</span>
+                  <span className="ml-1 text-text text-xs">% Accuracy</span>
                 </div>
               </div>
             </div>

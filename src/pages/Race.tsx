@@ -6,7 +6,6 @@ import Header from "../components/Header";
 import PlayerCard from "../components/PlayerCard";
 import TypingArea from "../components/TypingArea";
 import { calculateWPM } from "../utils/wpm";
-// import { calculateAccuracy } from "../utils/accuracy";
 import { toast } from "react-hot-toast";
 import {
   SignedIn,
@@ -27,7 +26,10 @@ interface User {
 
 interface RaceState {
   roomId: string;
-  clerkId?: string; // passed from Lobby
+  clerkId?: string;
+  text?: string;
+  users?: Record<string, User>;
+  username?: string;
 }
 
 export default function Race() {
@@ -61,6 +63,7 @@ export default function Race() {
   const [users, setUsers] = useState<Record<string, User>>({});
   const [disqualified, setDisqualified] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -73,6 +76,7 @@ export default function Race() {
   }, [roomId]);
 
   useSocket("race-state", ({ status, text, startTime, users, results }) => {
+    setLoading(false);
     setUsers(users);
     setText(text);
 
@@ -176,8 +180,8 @@ export default function Race() {
     socket.emit("typing-progress", {
       roomId,
       typedText: value,
-      clerkId, // ✅ identity
-      username: displayName, // UI only
+      clerkId,
+      username: displayName,
     });
   };
 
@@ -208,63 +212,88 @@ export default function Race() {
           <Header username={displayName} />
 
           <main className="flex flex-col items-center flex-1 p-6 gap-4">
-            <h2 className="text-3xl font-bold">Race</h2>
-            <p className="text-gray-600">Time: {elapsedTime}s</p>
+            <h2 className="text-3xl font-bold text-accent">Race</h2>
+            <p className="text-text">Time: {elapsedTime}s</p>
 
-            <div className="w-full max-w-3xl p-4 border rounded bg-background">
-              {/* Typing Text */}
-              <p className="mb-3 leading-relaxed text-lg">
-                {text.split("").map((char, idx) => {
-                  const typedChar = typed[idx];
-                  const color =
-                    idx < typed.length
-                      ? typedChar === char
-                        ? "#E94560"
-                        : "#00D1FF"
-                      : "#6B728E";
-                  return (
-                    <span key={idx} style={{ color }}>
-                      {char}
-                    </span>
-                  );
-                })}
-              </p>
+            {loading ? (
+              <div className="w-full max-w-3xl p-8 text-center">
+                <p className="text-accent/60 text-lg">Loading race...</p>
+              </div>
+            ) : !text ? (
+              <div className="w-full max-w-3xl p-8 text-center">
+                <p className="text-accent/60 text-lg">
+                  Waiting for race text...
+                </p>
+              </div>
+            ) : (
+              <div className="w-full max-w-3xl p-4 border border-accent rounded bg-background">
+                {/* Typing Text */}
+                <p className="mb-3 leading-relaxed text-lg">
+                  {text.split("").map((char, idx) => {
+                    const typedChar = typed[idx];
+                    const colorClass =
+                      idx < typed.length
+                        ? typedChar === char
+                          ? "text-correct"
+                          : "text-incorrect"
+                        : "text-text";
+                    return (
+                      <span key={idx} className={colorClass}>
+                        {char}
+                      </span>
+                    );
+                  })}
+                </p>
 
-              {/* Textarea */}
-              <TypingArea
-                typed={typed}
-                handleTyping={handleTyping}
-                disqualified={disqualified}
-              />
-            </div>
+                {/* Textarea */}
+                <TypingArea
+                  typed={typed}
+                  handleTyping={handleTyping}
+                  disqualified={disqualified}
+                />
+              </div>
+            )}
 
             {/* Stats */}
-            <div className="flex gap-6">
-              <p>
-                WPM: <strong>{stats.wpm}</strong>
-              </p>
-              <p>
-                Accuracy: <strong>{stats.accuracy}%</strong>
-              </p>
-              <p>
-                Progress: <strong>{stats.progress}%</strong>
-              </p>
-            </div>
+            {!loading && text && (
+              <div className="flex gap-6 text-accent">
+                <p>
+                  WPM:{" "}
+                  <strong className="font-bold text-correct">
+                    {stats.wpm}
+                  </strong>
+                </p>
+                <p>
+                  Accuracy:{" "}
+                  <strong className="font-bold text-correct">
+                    {stats.accuracy}%
+                  </strong>
+                </p>
+                <p>
+                  Progress:{" "}
+                  <strong className="font-bold text-correct">
+                    {stats.progress}%
+                  </strong>
+                </p>
+              </div>
+            )}
 
             {/* Players */}
-            <div className="w-full max-w-md mt-6 flex flex-col gap-2">
-              {Object.entries(users).map(([id, user]) => (
-                <PlayerCard
-                  key={id}
-                  username={user.username}
-                  progress={user.progress}
-                  wpm={user.wpm ?? 0}
-                  accuracy={user.accuracy ?? 0}
-                  disqualified={user.disqualified}
-                  dqReason={user.dqReason}
-                />
-              ))}
-            </div>
+            {!loading && (
+              <div className="w-full max-w-md mt-6 flex flex-col gap-2">
+                {Object.entries(users).map(([id, user]) => (
+                  <PlayerCard
+                    key={id}
+                    username={user.username}
+                    progress={user.progress}
+                    wpm={user.wpm ?? 0}
+                    accuracy={user.accuracy ?? 0}
+                    disqualified={user.disqualified}
+                    dqReason={user.dqReason}
+                  />
+                ))}
+              </div>
+            )}
           </main>
         </div>
       </SignedIn>

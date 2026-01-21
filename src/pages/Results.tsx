@@ -13,8 +13,8 @@ import {
 } from "@clerk/clerk-react";
 
 interface User {
-  clerkId?: string; // ✅ identity
-  username: string; // UI only
+  clerkId?: string;
+  username: string;
   progress: number;
   wpm: number;
   accuracy: number;
@@ -27,6 +27,7 @@ interface ResultsState {
   roomId: string;
   users: Record<string, User>;
   clerkId?: string;
+  username?: string;
 }
 
 export default function Results() {
@@ -131,7 +132,7 @@ export default function Results() {
 
           <main className="flex flex-col items-center p-6 gap-8 w-full overflow-y-auto">
             {/* Title */}
-            <h2 className="text-4xl font-bold font-mono tracking-wide">
+            <h2 className="text-4xl font-bold font-mono tracking-wide text-accent">
               Race Results
             </h2>
 
@@ -142,13 +143,13 @@ export default function Results() {
                 currentUsername={currentUsername}
               />
             ) : (
-              <p className="text-gray-500 mt-4">
+              <p className="text-text/60 mt-4">
                 No valid finishers in this race.
               </p>
             )}
 
             {/* Two-column layout */}
-            <div className="w-full flex gap-4 mt-6 justify-center">
+            <div className="w-full flex flex-col lg:flex-row gap-4 mt-6 justify-center">
               {/* Left Column */}
               <div className="w-full max-w-sm shrink-0">
                 <RaceSummaryCard users={userList} />
@@ -156,26 +157,30 @@ export default function Results() {
 
               {/* Right Column */}
               <div className="w-full max-w-md flex flex-col gap-3 max-h-[70vh] overflow-y-auto">
-                <h2 className="text-4xl font-bold font-mono tracking-wide">
+                <h2 className="text-4xl font-bold font-mono tracking-wide text-accent">
                   Players List
                 </h2>
 
-                {sortedPlayers.map((player, index) => (
-                  <PlayerCard
-                    key={index}
-                    username={player.username}
-                    progress={player.progress}
-                    wpm={player.wpm}
-                    accuracy={player.accuracy}
-                    disqualified={player.disqualified}
-                    dqReason={player.dqReason}
-                    highlight={
-                      player.clerkId
-                        ? player.clerkId === currentClerkId
-                        : player.username === currentUsername
-                    }
-                  />
-                ))}
+                {sortedPlayers.length === 0 ? (
+                  <p className="text-accent/60">No players in this race.</p>
+                ) : (
+                  sortedPlayers.map((player) => (
+                    <PlayerCard
+                      key={player.clerkId || player.username}
+                      username={player.username}
+                      progress={player.progress}
+                      wpm={player.wpm}
+                      accuracy={player.accuracy}
+                      disqualified={player.disqualified}
+                      dqReason={player.dqReason}
+                      highlight={
+                        player.clerkId
+                          ? player.clerkId === currentClerkId
+                          : player.username === currentUsername
+                      }
+                    />
+                  ))
+                )}
               </div>
             </div>
 

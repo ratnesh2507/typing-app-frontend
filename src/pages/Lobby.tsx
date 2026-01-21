@@ -93,7 +93,8 @@ export default function Lobby() {
     joinedRef.current = true;
     socket.emit("join-room", {
       roomId,
-      username: displayName, // sockets still use name
+      username: displayName,
+      clerkId, // sockets still use name
     });
   }, [roomId, displayName]);
 

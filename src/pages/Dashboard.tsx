@@ -26,9 +26,11 @@ export default function Dashboard() {
 
     setClerkId(user.id);
 
-    if (user.username) setUsername(user.username);
-    else if (user.firstName) setUsername(user.firstName);
-    else setUsername("Player");
+    if (user.username) {
+      setUsername(user.username);
+    } else {
+      setUsername(user.id); // deterministic fallback
+    }
   }, [isLoaded, user]);
 
   /* ---------------- SOCKET ACTIONS ---------------- */
@@ -68,20 +70,35 @@ export default function Dashboard() {
 
   /* ---------------- FETCH DASHBOARD DATA ---------------- */
   useEffect(() => {
-    if (!clerkId) return;
+    if (!clerkId || !username) return;
 
     async function fetchDashboardData() {
       try {
         setLoading(true);
 
-        const res = await fetch(`${API_BASE}/users/${clerkId}/races?limit=20`);
-        const races = await res.json();
+        // 1️⃣ Try fetching by clerk_id (primary)
+        let res = await fetch(`${API_BASE}/races/user/${clerkId}?limit=20`);
+        let races = await res.json();
 
+        // 2️⃣ Fallback: legacy username-based data
+        if (Array.isArray(races) && races.length === 0) {
+          console.warn(
+            "[Dashboard] No clerk races found, falling back to username",
+          );
+
+          res = await fetch(`${API_BASE}/races/user/${username}?limit=20`);
+          races = await res.json();
+        }
+
+        /* ---------------- STATS ---------------- */
         const finishedRaces = races.filter(
           (r: any) => r.finished && !r.disqualified,
         );
 
-        const bestWpm = Math.max(...finishedRaces.map((r: any) => r.wpm), 0);
+        const bestWpm =
+          finishedRaces.length > 0
+            ? Math.max(...finishedRaces.map((r: any) => r.wpm))
+            : 0;
 
         const avgWpm =
           finishedRaces.length > 0
@@ -103,6 +120,7 @@ export default function Dashboard() {
           avgAccuracy,
         });
 
+        /* ---------------- PAST RACES ---------------- */
         setPastRaces(
           races.slice(0, 5).map((r: any) => ({
             raceId: r.race_id,
@@ -110,8 +128,8 @@ export default function Dashboard() {
             accuracy: r.accuracy,
             finished: r.finished,
             disqualified: r.disqualified,
-            finishTime: r.finish_time,
-            cheatFlags: r.cheat_flags,
+            finishTime: r.finish_time ?? null,
+            cheatFlags: r.cheat_flags ?? [],
           })),
         );
       } catch (err) {
@@ -122,7 +140,7 @@ export default function Dashboard() {
     }
 
     fetchDashboardData();
-  }, [clerkId]);
+  }, [clerkId, username]);
 
   /* ---------------- UI ---------------- */
   return (

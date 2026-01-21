@@ -26,7 +26,7 @@ export default function HowToPlay() {
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="px-4 py-2 bg-[#FFEE63] text-[#1A1A2E] font-mono font-bold rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all hover:cursor-pointer duration-200"
+        className="px-4 py-2 bg-accent text-background font-mono font-bold rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all hover:cursor-pointer duration-200"
       >
         🎮 How To Play
       </button>
@@ -37,12 +37,12 @@ export default function HowToPlay() {
           {/* Modal Content */}
           <div
             ref={modalRef}
-            className="bg-[#1A1A2E] text-[#FFEE63] rounded-2xl p-6 max-w-lg w-full relative shadow-2xl border-4 border-[#FFEE63] flex flex-col gap-4"
+            className="bg-background text-accent rounded-2xl p-6 max-w-lg w-full relative shadow-2xl border-4 border-accent flex flex-col gap-4"
           >
             {/* Close Button */}
             <button
               onClick={() => setIsOpen(false)}
-              className="absolute top-4 right-4 text-[#FFEE63] font-bold text-xl hover:text-red-500 transition-colors"
+              className="absolute top-4 right-4 text-accent font-bold text-xl hover:text-correct transition-colors"
             >
               ✖️
             </button>
@@ -50,7 +50,7 @@ export default function HowToPlay() {
             {/* Heading with Pixel Cursor */}
             <h2 className="text-2xl font-bold font-mono text-center mb-2 flex items-center justify-center gap-2">
               🕹️ How To Play 🕹️
-              <span className="w-3 h-3 bg-[#FFEE63] animate-pulse block"></span>
+              <span className="w-3 h-3 bg-accent animate-pulse block"></span>
             </h2>
 
             <ul className="list-disc list-inside font-mono text-sm space-y-2">
@@ -76,11 +76,11 @@ export default function HowToPlay() {
 
             <p className="text-center font-mono mt-2">
               Good luck & have fun! 🎉
-              <span className="w-2 h-2 bg-[#FFEE63] inline-block ml-1 animate-pulse"></span>
+              <span className="w-2 h-2 bg-accent inline-block ml-1 animate-pulse"></span>
             </p>
 
             {/* Credit */}
-            <p className="text-center font-mono text-md mt-4 text-[#FFEE63]/70">
+            <p className="text-center font-mono text-md mt-4 text-accent opacity-70">
               Made with ❤️ by BVK Ratnesh |{" "}
               <a
                 href="https://github.com/ratnesh2507"

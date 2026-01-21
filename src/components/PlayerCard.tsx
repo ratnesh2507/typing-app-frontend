@@ -21,58 +21,59 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
 }) => {
   return (
     <div
-      className={`p-3 rounded-lg font-mono shadow-md hover:shadow-lg transition-shadow duration-200 ${
-        highlight ? "bg-yellow-200 border border-yellow-400" : ""
+      className={`p-4 rounded-lg font-mono shadow-lg hover:shadow-xl transition-all duration-200 border-2 ${
+        highlight
+          ? "bg-accent/20 border-accent scale-105"
+          : disqualified
+            ? "bg-incorrect/20 border-incorrect"
+            : "bg-background border-accent/50 hover:border-accent"
       }`}
-      style={{
-        backgroundColor: highlight
-          ? "#FFFBCC"
-          : disqualified
-          ? "#00D1FF"
-          : "#1A1A2E",
-        borderColor: highlight
-          ? "#FFD700"
-          : disqualified
-          ? "#00D1FF"
-          : "#FFEE63",
-        color: highlight ? "#1A1A2E" : disqualified ? "#1A1A2E" : "#6B728E",
-      }}
     >
-      <div className="flex justify-between items-center mb-1">
-        <span className="font-semibold">{username}</span>
+      <div className="flex justify-between items-center mb-2">
+        <span
+          className={`font-bold text-lg ${
+            highlight
+              ? "text-accent"
+              : disqualified
+                ? "text-incorrect"
+                : "text-accent"
+          }`}
+        >
+          {highlight && "👤 "}
+          {username}
+          {highlight && " (You)"}
+        </span>
         {disqualified && (
-          <span
-            className="px-1 rounded text-sm"
-            style={{
-              backgroundColor: "#00D1FF",
-              color: "#1A1A2E",
-            }}
-          >
+          <span className="px-2 py-1 rounded text-xs font-semibold bg-incorrect text-background border border-incorrect">
             ❌ DQ {dqReason && `(${dqReason})`}
           </span>
         )}
       </div>
 
-      <div className="h-3 bg-gray-700 rounded overflow-hidden">
+      {/* Progress Bar */}
+      <div className="h-4 bg-background border border-text/30 rounded-lg overflow-hidden mb-2">
         <div
-          className="h-3 rounded"
+          className={`h-4 rounded-lg transition-all duration-300 ease-out ${
+            disqualified ? "bg-incorrect" : "bg-accent"
+          }`}
           style={{
             width: `${progress}%`,
-            backgroundColor: disqualified ? "#00D1FF" : "#FFEE63",
-            transition: "width 0.3s ease",
           }}
         />
       </div>
 
-      <div className="mt-1 flex gap-4 text-sm">
+      {/* Stats */}
+      <div className="flex gap-4 text-sm text-text">
         {wpm !== undefined && (
-          <p>
-            WPM: <strong>{wpm}</strong>
+          <p className="flex items-center gap-1">
+            <span>⚡ WPM:</span>
+            <strong className="text-accent">{wpm}</strong>
           </p>
         )}
         {accuracy !== undefined && (
-          <p>
-            Accuracy: <strong>{accuracy}%</strong>
+          <p className="flex items-center gap-1">
+            <span>🎯 Accuracy:</span>
+            <strong className="text-accent">{accuracy}%</strong>
           </p>
         )}
       </div>

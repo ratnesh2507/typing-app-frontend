@@ -6,7 +6,7 @@ interface RaceResultCardProps {
   accuracy: number;
   finished: boolean;
   disqualified: boolean;
-  finishTime?: string | null; // ⬅️ FIXED
+  finishTime?: string | null;
   cheatFlags?: string[];
   onClick?: () => void;
 }
@@ -41,10 +41,12 @@ const RaceResultCard: React.FC<RaceResultCardProps> = ({
       : "DNF";
 
   const statusColor = disqualified
-    ? "text-wrong"
+    ? "text-incorrect"
     : finished
       ? "text-correct"
-      : "text-accent/70";
+      : "text-text";
+
+  const statusEmoji = disqualified ? "❌" : finished ? "✅" : "⏸️";
 
   const formattedFinishTime =
     finishTime && finished && !disqualified
@@ -55,43 +57,56 @@ const RaceResultCard: React.FC<RaceResultCardProps> = ({
     <div
       onClick={onClick}
       className="cursor-pointer rounded-xl p-5
-                 bg-background/70
-                 border border-accent/40
-                 shadow-[0_6px_20px_rgba(0,0,0,0.35)]
-                 hover:shadow-[0_10px_30px_rgba(255,238,99,0.35)]
-                 hover:-translate-y-0.5
+                 bg-background
+                 border-2 border-accent/50
+                 shadow-lg
+                 hover:shadow-[0_10px_30px_rgba(255,238,99,0.4)]
+                 hover:border-accent
+                 hover:-translate-y-1
+                 hover:scale-[1.02]
                  transition-all duration-300
                  font-mono"
     >
       {/* Header */}
-      <div className="flex justify-between items-center mb-3">
-        <h3 className="text-lg font-bold text-accent">Race #{raceId}</h3>
-        <span className={`text-sm font-semibold ${statusColor}`}>
-          {statusLabel}
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-bold text-accent flex items-center gap-2">
+          🏁 Race #{raceId}
+        </h3>
+        <span
+          className={`text-sm font-semibold flex items-center gap-1 ${statusColor}`}
+        >
+          {statusEmoji} {statusLabel}
         </span>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-3 text-sm text-text">
-        <p>
-          WPM: <span className="font-semibold">{wpm}</span>
-        </p>
+      <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="text-text">⚡ WPM:</span>
+          <span className="font-bold text-accent">{wpm}</span>
+        </div>
 
-        <p>
-          Accuracy: <span className="font-semibold">{accuracy}%</span>
-        </p>
+        <div className="flex items-center gap-2">
+          <span className="text-text">🎯 Accuracy:</span>
+          <span className="font-bold text-accent">{accuracy}%</span>
+        </div>
 
         {formattedFinishTime && (
-          <p className="col-span-2 text-text/80">
-            Finished at:{" "}
-            <span className="font-semibold">{formattedFinishTime}</span>
-          </p>
+          <div className="col-span-2 flex items-center gap-2 text-text pt-2 border-t border-accent/30">
+            <span>🕐 Finished at:</span>
+            <span className="font-semibold text-accent">
+              {formattedFinishTime}
+            </span>
+          </div>
         )}
 
         {cheatFlags.length > 0 && (
-          <p className="col-span-2 text-wrong text-xs">
-            ⚠ Flags: {cheatFlags.join(", ")}
-          </p>
+          <div className="col-span-2 mt-2 p-2 rounded-md bg-incorrect/20 border border-incorrect">
+            <p className="text-incorrect text-xs font-semibold flex items-center gap-1">
+              ⚠️ Flags:{" "}
+              <span className="font-normal">{cheatFlags.join(", ")}</span>
+            </p>
+          </div>
         )}
       </div>
     </div>

@@ -15,36 +15,35 @@ const Header: React.FC<HeaderProps> = ({ username }) => {
   const navigate = useNavigate();
 
   return (
-    <header className="flex justify-between items-center p-4 bg-background shadow-lg border-b border-accent">
+    <header className="flex items-center justify-between p-4 bg-background border-b border-accent shadow-lg">
       {/* Title */}
       <h1
-        className="text-3xl font-bold font-mono text-accent cursor-pointer hover:text-correct transition-colors duration-300"
+        className="text-3xl font-bold font-mono text-accent cursor-pointer transition-colors duration-300 hover:text-correct"
         onClick={() => navigate("/")}
       >
         RapidType
       </h1>
 
-      {/* User Info / Auth Buttons */}
-      {username ? (
-        <SignedIn>
-          <div className="flex items-center gap-4">
-            <p className="text-text font-mono">Hello, {username}</p>
-            <SignOutButton>
-              <button className="bg-correct text-background px-4 py-2 rounded-lg hover:brightness-125 transition-all duration-200">
-                Sign Out
-              </button>
-            </SignOutButton>
-          </div>
-        </SignedIn>
-      ) : (
-        <SignedOut>
-          <SignInButton>
-            <button className="bg-accent text-background px-4 py-2 rounded-lg hover:brightness-125 transition-all duration-200">
-              Sign In
+      {/* Auth-controlled UI */}
+      <SignedIn>
+        <div className="flex items-center gap-4">
+          <p className="font-mono text-text">Hello, {username ?? "Racer"}</p>
+
+          <SignOutButton>
+            <button className="px-4 py-2 rounded-lg bg-correct text-background font-mono transition-all duration-200 hover:brightness-110">
+              Sign Out
             </button>
-          </SignInButton>
-        </SignedOut>
-      )}
+          </SignOutButton>
+        </div>
+      </SignedIn>
+
+      <SignedOut>
+        <SignInButton>
+          <button className="px-4 py-2 rounded-lg bg-accent text-background font-mono transition-all duration-200 hover:brightness-110">
+            Sign In
+          </button>
+        </SignInButton>
+      </SignedOut>
     </header>
   );
 };

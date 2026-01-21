@@ -9,24 +9,24 @@ interface PodiumProps {
 const podiumStyles = [
   {
     base: "bg-correct",
-    glow: "shadow-[0_0_25px_#E94560]",
-    ring: "ring-2 ring-[#E94560]",
+    glow: "shadow-[0_0_25px_rgba(233,69,96,0.8)]",
+    ring: "ring-2 ring-correct",
   },
   {
     base: "bg-accent",
-    glow: "shadow-[0_0_20px_#FFEE63]",
-    ring: "ring-2 ring-[#FFEE63]",
+    glow: "shadow-[0_0_20px_rgba(255,238,99,0.8)]",
+    ring: "ring-2 ring-accent",
   },
   {
     base: "bg-incorrect",
-    glow: "shadow-[0_0_20px_#00D1FF]",
-    ring: "ring-2 ring-[#00D1FF]",
+    glow: "shadow-[0_0_20px_rgba(0,209,255,0.8)]",
+    ring: "ring-2 ring-incorrect",
   },
 ];
 
 export default function Podium({ winners, currentUsername }: PodiumProps) {
   return (
-    <div className="flex justify-center items-end gap-6 mt-8">
+    <div className="flex justify-center items-end gap-6 mt-8 mb-8">
       {winners.map((player, index) => {
         const heightClass = ["h-40", "h-32", "h-24"][index];
         const style = podiumStyles[index];
@@ -38,6 +38,7 @@ export default function Podium({ winners, currentUsername }: PodiumProps) {
             className="flex flex-col items-center opacity-0 animate-podium"
             style={{ animationDelay: `${index * 150}ms` }}
           >
+            {/* Podium Block */}
             <div
               className={`w-24 ${heightClass} rounded-t-xl ${style.base} ${
                 style.glow
@@ -45,7 +46,7 @@ export default function Podium({ winners, currentUsername }: PodiumProps) {
                 style.ring
               } flex items-end justify-center transition-transform duration-300 hover:scale-110 ${
                 isCurrent
-                  ? "ring-4 ring-yellow-400 shadow-[0_0_30px_#FFD700]"
+                  ? "ring-4 ring-accent shadow-[0_0_30px_rgba(255,238,99,1)]"
                   : ""
               }`}
             >
@@ -54,11 +55,18 @@ export default function Podium({ winners, currentUsername }: PodiumProps) {
               </span>
             </div>
 
-            <span className="mt-3 text-text font-mono font-semibold">
+            {/* Username */}
+            <span
+              className={`mt-3 font-mono font-semibold ${
+                isCurrent ? "text-accent" : "text-text"
+              }`}
+            >
               {player.username}
+              {isCurrent && " 👤"}
             </span>
 
-            <span className="text-xl">{["🥇", "🥈", "🥉"][index]}</span>
+            {/* Medal */}
+            <span className="text-3xl mt-1">{["🥇", "🥈", "🥉"][index]}</span>
           </div>
         );
       })}

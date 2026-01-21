@@ -57,30 +57,33 @@ const RaceSummaryCard: React.FC<RaceSummaryCardProps> = ({ users }) => {
   }, [users]);
 
   return (
-    <div className="bg-gray-900 text-gray-100 rounded-xl p-6 shadow-lg w-full max-w-md">
-      <h3 className="text-2xl font-bold font-mono mb-4">Race Summary</h3>
+    <div className="bg-background text-text rounded-xl p-6 shadow-xl border-2 border-accent w-full max-w-md">
+      <h3 className="text-2xl font-bold font-mono mb-6 text-accent flex items-center gap-2">
+        📊 Race Summary
+        <span className="w-2 h-2 bg-accent animate-pulse inline-block"></span>
+      </h3>
 
-      <div className="flex flex-col gap-3 mb-4">
-        <div className="flex justify-between">
-          <span>Average WPM:</span>
-          <span className="font-semibold">{stats.avgWPM}</span>
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="flex justify-between items-center p-2 rounded-lg bg-background border border-accent/30 hover:border-accent transition-colors">
+          <span className="text-text font-mono">⚡ Average WPM:</span>
+          <span className="font-bold text-accent">{stats.avgWPM}</span>
         </div>
 
-        <div className="flex justify-between">
-          <span>Fastest Typist:</span>
-          <span className="font-semibold">
+        <div className="flex justify-between items-center p-2 rounded-lg bg-background border border-accent/30 hover:border-accent transition-colors">
+          <span className="text-text font-mono">🏆 Fastest Typist:</span>
+          <span className="font-bold text-accent">
             {stats.fastestUser} ({stats.fastestWPM} WPM)
           </span>
         </div>
 
-        <div className="flex justify-between">
-          <span>Total Participants:</span>
-          <span className="font-semibold">{stats.totalUsers}</span>
+        <div className="flex justify-between items-center p-2 rounded-lg bg-background border border-accent/30 hover:border-accent transition-colors">
+          <span className="text-text font-mono">👥 Total Participants:</span>
+          <span className="font-bold text-accent">{stats.totalUsers}</span>
         </div>
 
-        <div className="flex justify-between">
-          <span>Finished:</span>
-          <span className="font-semibold">
+        <div className="flex justify-between items-center p-2 rounded-lg bg-background border border-accent/30 hover:border-accent transition-colors">
+          <span className="text-text font-mono">✅ Finished:</span>
+          <span className="font-bold text-accent">
             {stats.finishedUsers} ({stats.completionRate}%)
           </span>
         </div>
@@ -88,7 +91,7 @@ const RaceSummaryCard: React.FC<RaceSummaryCardProps> = ({ users }) => {
 
       {/* WPM Distribution Line Chart */}
       {stats.chartData.length > 0 && (
-        <div className="w-full h-48 mt-4">
+        <div className="w-full h-48 mt-6 p-3 rounded-lg border-2 border-accent/50 bg-background">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={stats.chartData}
@@ -96,25 +99,30 @@ const RaceSummaryCard: React.FC<RaceSummaryCardProps> = ({ users }) => {
             >
               <XAxis
                 dataKey="username"
-                tick={{ fontSize: 12, fill: "#ffffff" }}
+                tick={{ fontSize: 12, fill: "#6B728E" }}
                 interval={0}
                 angle={-20}
                 textAnchor="end"
               />
-              <YAxis tick={{ fontSize: 12, fill: "#ffffff" }} />
+              <YAxis tick={{ fontSize: 12, fill: "#6B728E" }} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "#1A1A2E",
-                  border: "none",
-                  borderRadius: "6px",
+                  border: "2px solid #FFEE63",
+                  borderRadius: "8px",
+                  color: "#FFEE63",
+                  fontFamily: "JetBrains Mono, monospace",
                 }}
+                labelStyle={{ color: "#FFEE63", fontWeight: "bold" }}
+                itemStyle={{ color: "#6B728E" }}
               />
               <Line
                 type="monotone"
                 dataKey="wpm"
                 stroke="#FFEE63"
-                strokeWidth={2}
-                dot
+                strokeWidth={3}
+                dot={{ fill: "#FFEE63", strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, fill: "#E94560" }}
               />
             </LineChart>
           </ResponsiveContainer>
